@@ -1,0 +1,87 @@
+{
+  "@@locale": "en",
+  "appTitle": "Brainjamin",
+  "@appTitle": {
+    "description": "App display name (App Store metadata + window title)"
+  },
+  "welcomeTitle": "Hello — I'm Brainjamin.",
+  "@welcomeTitle": {
+    "description": "Welcome screen headline (PR-14 mascot voice)"
+  },
+  "welcomeBody": "Trivia should feel like a daily ritual, not homework — I'll nudge you through questions, streaks, and tournaments.",
+  "@welcomeBody": {
+    "description": "Welcome screen body; warm mentor tone (PR-14, CB-10)"
+  },
+  "welcomeCta": "Let's go",
+  "@welcomeCta": {
+    "description": "Primary button from welcome to age gate"
+  },
+  "ageGateTitle": "First, the basics",
+  "@ageGateTitle": {
+    "description": "Age gate AppBar title (PR-11)"
+  },
+  "ageGateSubtitle": "I need your birth month and year so Brainjamin keeps things age-appropriate — no birthdays stored, promise.",
+  "@ageGateSubtitle": {
+    "description": "Why we ask; mascot voice (PR-11 privacy minimization)"
+  },
+  "ageGateBirthMonth": "Birth month",
+  "@ageGateBirthMonth": {
+    "description": "Label for month dropdown"
+  },
+  "ageGateBirthYear": "Birth year",
+  "@ageGateBirthYear": {
+    "description": "Label for year dropdown"
+  },
+  "ageGateContinue": "Continue",
+  "@ageGateContinue": {
+    "description": "Age gate submit button"
+  },
+  "ageGateBlockedTitle": "Brainjamin is for ages 13 and up.",
+  "@ageGateBlockedTitle": {
+    "description": "Under-13 block title (PR-11 exact requirement)"
+  },
+  "ageGateBlockedBody": "Come back when you've leveled up a bit — I'll save you a seat.",
+  "@ageGateBlockedBody": {
+    "description": "Under-13 block body; kind mascot tone, not cold rejection"
+  },
+  "ageGateBlockedBack": "Go back",
+  "@ageGateBlockedBack": {
+    "description": "Return to age gate to correct entry"
+  },
+  "signInTitle": "Play your way",
+  "@signInTitle": {
+    "description": "Sign-in step headline"
+  },
+  "signInSubtitle": "Link Apple, Google, or email to chase leaderboards and achievements — or skip signing in and I'll still run every game mode with you.",
+  "@signInSubtitle": {
+    "description": "Optional auth vs anonymous-full-play (PR-4, CONTEXT Auth)"
+  },
+  "signInWithApple": "Continue with Apple",
+  "@signInWithApple": {
+    "description": "Placeholder sign-in button"
+  },
+  "signInWithGoogle": "Continue with Google",
+  "@signInWithGoogle": {
+    "description": "Placeholder sign-in button"
+  },
+  "signInWithEmail": "Continue with Email",
+  "@signInWithEmail": {
+    "description": "Placeholder sign-in button"
+  },
+  "signInComingSoon": "Brainjamin is sharpening this — coming in the next update.",
+  "@signInComingSoon": {
+    "description": "SnackBar when OAuth/email not wired yet (mascot voice)"
+  },
+  "signInContinueAnonymous": "Continue without signing in",
+  "@signInContinueAnonymous": {
+    "description": "Anonymous-first primary path (PR-4)"
+  },
+  "mainPlaceholderTitle": "You're in.",
+  "@mainPlaceholderTitle": {
+    "description": "Temporary main shell placeholder title"
+  },
+  "mainPlaceholderSubtitle": "Brainjamin's stage is being built — Sprint 1.4 ships the real shell.",
+  "@mainPlaceholderSubtitle": {
+    "description": "Temporary copy until tab shell exists"
+  }
+}
