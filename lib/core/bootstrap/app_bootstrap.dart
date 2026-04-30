@@ -13,10 +13,12 @@ class BootstrapResult {
   const BootstrapResult({
     required this.onboardingCompleted,
     required this.ageGatePassed,
+    this.authCompleted = false,
   });
 
   final bool onboardingCompleted;
   final bool ageGatePassed;
+  final bool authCompleted;
 }
 
 /// Initializes Firebase and wires Crashlytics handlers.
@@ -44,6 +46,7 @@ Future<BootstrapResult> bootstrapBrainjamin() async {
   final onboardingCompleted =
       await OnboardingStateService.isOnboardingCompleted();
   final ageGatePassed = await OnboardingStateService.isAgeGatePassed();
+  final authCompleted = await OnboardingStateService.isAuthCompleted();
 
   FlutterError.onError =
       FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -55,5 +58,6 @@ Future<BootstrapResult> bootstrapBrainjamin() async {
   return BootstrapResult(
     onboardingCompleted: onboardingCompleted,
     ageGatePassed: ageGatePassed,
+    authCompleted: authCompleted,
   );
 }

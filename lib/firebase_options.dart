@@ -73,6 +73,9 @@ class DefaultFirebaseOptions {
     projectId: 'brainjamin-prod-app',
     databaseURL: 'https://brainjamin-prod-app-default-rtdb.firebaseio.com',
     storageBucket: 'brainjamin-prod-app.firebasestorage.app',
+    androidClientId: '1047648611720-rg02qsmh0robo5tie2fn15qhm3kfnu89.apps.googleusercontent.com',
+    iosClientId: '1047648611720-36o7lult2k7iob1f397q89tn1puesm08.apps.googleusercontent.com',
     iosBundleId: 'com.stratech.brainjamin',
   );
+
 }

@@ -13,7 +13,20 @@
           "package_name": "com.stratech.brainjamin"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1047648611720-rg02qsmh0robo5tie2fn15qhm3kfnu89.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stratech.brainjamin",
+            "certificate_hash": "a17cf0bcbf96dcaff587eb97424c00ff64ae0430"
+          }
+        },
+        {
+          "client_id": "1047648611720-tpqlge2eu0atrtrfct6bvcjpcj144krq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA6saAsaOW_99ETuA5V7kNvYS0hT_Fpa60"
@@ -21,7 +34,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1047648611720-tpqlge2eu0atrtrfct6bvcjpcj144krq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1047648611720-36o7lult2k7iob1f397q89tn1puesm08.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.stratech.brainjamin"
+              }
+            }
+          ]
         }
       }
     }

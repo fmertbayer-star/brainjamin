@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-import 'tabs/arena_tab.dart';
-import 'tabs/duel_tab.dart';
 import 'tabs/home_tab.dart';
+import 'tabs/leaderboard_tab.dart';
 import 'tabs/profile_tab.dart';
-import 'tabs/self_test_tab.dart';
+import 'tabs/tournaments_tab.dart';
 
-/// Five-tab shell — tab routes deferred to Sprint 2+; IndexedStack preserves state.
+/// Four-tab shell — interim routes deferred to later sprints; IndexedStack preserves state.
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -18,13 +17,22 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
-  late final List<Widget> _pages = const [
-    HomeTab(),
-    SelfTestTab(),
-    ArenaTab(),
-    DuelTab(),
-    ProfileTab(),
-  ];
+  void _setIndex(int index) {
+    setState(() => _currentIndex = index);
+  }
+
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      HomeTab(onNavigateToTab: _setIndex),
+      const TournamentsTab(),
+      const LeaderboardTab(),
+      const ProfileTab(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +45,7 @@ class _MainShellState extends State<MainShell> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
-        },
+        onDestinationSelected: _setIndex,
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.today_outlined),
@@ -47,19 +53,14 @@ class _MainShellState extends State<MainShell> {
             label: l10n.mainTabHome,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.fitness_center_outlined),
-            selectedIcon: const Icon(Icons.fitness_center),
-            label: l10n.mainTabSelfTest,
+            icon: const Icon(Icons.emoji_events_outlined),
+            selectedIcon: const Icon(Icons.emoji_events),
+            label: l10n.mainTabTournaments,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.groups_outlined),
-            selectedIcon: const Icon(Icons.groups),
-            label: l10n.mainTabArena,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.bolt_outlined),
-            selectedIcon: const Icon(Icons.bolt),
-            label: l10n.mainTabDuel,
+            icon: const Icon(Icons.leaderboard_outlined),
+            selectedIcon: const Icon(Icons.leaderboard),
+            label: l10n.mainTabLeaderboard,
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline),

@@ -1,13 +1,19 @@
 import 'package:go_router/go_router.dart';
 
 import '../core/services/onboarding_flow_controller.dart';
+import '../features/arena/arena_screen.dart';
+import '../features/duel/duel_screen.dart';
 import '../features/main_shell/main_shell.dart';
 import '../features/onboarding/age_blocked_screen.dart';
 import '../features/onboarding/age_gate_screen.dart';
 import '../features/onboarding/sign_in_screen.dart';
 import '../features/onboarding/welcome_screen.dart';
+import '../features/self_test/self_test_screen.dart';
 
 /// Single app router — no brand/admin split (Brainjamin CONTEXT).
+///
+/// TODO(sprint-5): [OnboardingFlowController.isAuthCompleted] does not gate routes today;
+/// Profile may subscribe for CTA visibility without tightening redirect logic here.
 final class AppRouter {
   AppRouter._();
 
@@ -20,9 +26,14 @@ final class AppRouter {
       redirect: (context, state) {
         final completed = onboardingController.isOnboardingCompleted;
         final loc = state.uri.path;
-        if (!completed && loc == '/') {
-          return '/onboarding/welcome';
+
+        if (!completed) {
+          if (!loc.startsWith('/onboarding')) {
+            return '/onboarding/welcome';
+          }
+          return null;
         }
+
         if (completed && loc.startsWith('/onboarding')) {
           return '/';
         }
@@ -33,6 +44,21 @@ final class AppRouter {
           path: '/',
           name: 'main',
           builder: (context, state) => const MainShell(),
+        ),
+        GoRoute(
+          path: '/self-test',
+          name: 'self-test',
+          builder: (context, state) => const SelfTestScreen(),
+        ),
+        GoRoute(
+          path: '/arena',
+          name: 'arena',
+          builder: (context, state) => const ArenaScreen(),
+        ),
+        GoRoute(
+          path: '/duel',
+          name: 'duel',
+          builder: (context, state) => const DuelScreen(),
         ),
         GoRoute(
           path: '/onboarding/welcome',

@@ -32,6 +32,7 @@ class _BrainjaminAppState extends State<BrainjaminApp> {
     _onboardingController = OnboardingFlowController(
       initialCompleted: widget.bootstrap.onboardingCompleted,
       initialAgeGatePassed: widget.bootstrap.ageGatePassed,
+      initialAuthCompleted: widget.bootstrap.authCompleted,
     );
     _router = AppRouter.create(onboardingController: _onboardingController);
   }

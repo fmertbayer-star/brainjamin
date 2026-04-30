@@ -1,5 +1,5 @@
 # BRAINJAMIN — PROJECT CONTEXT
-Last reviewed: 2026-04-29
+Last reviewed: 2026-04-30
 
 Structural truth of Brainjamin. Updated only when major architectural decisions
 change. Day-to-day work belongs in BRAINJAMIN_TODO.md. Behavior + project rules
@@ -84,6 +84,16 @@ in V1 scope. All user-facing strings via Flutter `intl` —
   progress is lost if they sign into the existing account.
 - Sign-in method changeable post-conversion (Profile → Settings → "Add or
   change sign-in method").
+
+#### Apple Sign In identifiers (locked)
+
+- **App ID:** `com.stratech.brainjamin`
+- **Service ID:** `com.stratech.brainjamin.signin`
+- **Apple Team ID:** `J863Y2PK9U` (Stratech Dynamic FZCO, shared with Flit)
+- **Authorized callback URL:** `https://brainjamin-prod-app.firebaseapp.com/__/auth/handler`
+- **Authorized domain:** `brainjamin-prod-app.firebaseapp.com`
+- **Apple Sign In Key ID:** `L2K726P8TK`
+- **Apple `.p8` private key** stored locally on Mert's machine outside repo (`C:\flutter_projects\secrets\brainjamin\AuthKey_L2K726P8TK.p8`). Server-side use deferred — not in V1 scope. If a future feature requires `.p8` (e.g., `revokeUserAccount`), it must be moved to **Firebase Cloud Secret Manager** at that time.
 
 ### Monetization — V1
 - **AdMob:** Banner + Interstitial only. Rewarded explicitly **deferred to
@@ -722,25 +732,22 @@ proven.
 
 - **Flit repo:** `github.com/fmertbayer-star/flit` (local:
   `C:\flutter_projects\flit`)
-- **Brainjamin repo:** new, not yet created. To be initialized with:
-  ```
-  flutter create brainjamin
-  ```
-  then user-side files copied over module-by-module via Cursor prompts.
-  Local: `C:\flutter_projects\brainjamin`.
-  GitHub: `github.com/fmertbayer-star/brainjamin` (TBD on creation).
+- **Brainjamin repo:** local app at `C:\flutter_projects\brainjamin`; git
+  initialized during Sprint 1. GitHub remote
+  `github.com/fmertbayer-star/brainjamin` may or may not be configured —
+  verify with `git remote -v`.
 
 The two codebases are **fully independent**. No shared code, no shared
-Firebase project. Brainjamin will have its own Firebase project, its own
-App Store / Play Store listings, its own Apple Developer / Google Play
-Console entries.
+Firebase project. Brainjamin uses its own Firebase project, App Store /
+Play listings, Apple Developer / Google Play Console entries.
 
 Stratech Dynamic FZCO is the publishing entity for both.
 
 - **Package name (Android):** `com.stratech.brainjamin`
 - **Bundle ID (iOS):** `com.stratech.brainjamin`
-- **Firebase project ID:** `brainjamin-prod` (TBD on Firebase project
-  creation)
+- **Firebase project ID:** `brainjamin-prod-app`
+- **Apple App Store Connect App ID:** `6765467964` (Brainjamin / iOS,
+  created 2026-04-30)
 
 ---
 

@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local secrets — never commit Apple keys or mirrored secret trees
+/secrets/
+*.p8

@@ -5,30 +5,39 @@ Last updated: 2026-04-30
 
 ## NEXT UP — Active Thread
 
-**Sprint 1.4 closed 2026-04-30. Sprint 1.4.5 (refactor) is next.**
+**Sprints 1.4.5, 1.5, and 1.5.5 are code-complete on disk; Sprint 1
+closes after the deferred smoke-test pass.**
 
-Sprint 1.4 shipped go_router migration + 5-tab MainShell + mascot-voice
-empty states + ARB updates. Smoke-tested in Chrome — all 7 scenarios
-passed (Welcome → Age Gate <13 block → Age Gate ≥13 → Sign In →
-anonymous continue → 5-tab navigation → reload persistence).
+Sprint **1.5 + 1.5.5**: auth providers + `linkWithCredential`, recovery,
+`Info.plist` URL scheme, ARB verification — merged to `main`-ready
+workspace. **Smoke test pending** (not run this session).
 
-Tab structure decision (open at session end): the current 5-tab layout
-(Home / Self-Test / Arena / Duel / Profile) is interim. Final Sprint
-1.4.5 layout will be 4 tabs: **Home / Tournaments / Leaderboard /
-Profile** — with Self-Test, Arena, and Duel demoted to sub-routes
-(`/self-test`, `/arena`, `/duel`) reachable from Home cards. Rationale:
-Daily Question alone doesn't justify a tab; Home should be a "quick
-play" landing surface aggregating Daily + Self-Test entry + Quick Duel
-+ active Arenas + next Live countdown. Tournaments and Leaderboard each
-warrant standalone tabs.
+**First task next session — 8-scenario smoke plan** (closes Sprint 1 when
+all pass):
 
-Sprint 1.4.5 prerequisites (Mert + Claude work, not Cursor):
-- Re-read BRAINJAMIN_CONTEXT.md to verify: (1) game mode list complete,
-  (2) Leaderboard V1 scope (global vs categorical vs both), (3)
-  anonymous user handling for Tournaments + Leaderboard tabs (PR-4
-  says full play but no public surface — Leaderboard tab needs a
-  "sign in to appear" CTA decision).
-- Then Claude drafts Sprint 1.4.5 Cursor prompt.
+**Chrome — Tests 1–6**
+
+1. **Google sign-in** — Anonymous → permanent link (no account conflict).
+2. **Email** — Sign-up flow for a **new** email (no prior Firebase account).
+3. **“Account already exists”** — Same email as an existing Brainjamin user:
+   validate **Cancel** (stay anonymous) and **Switch accounts** (destructive
+   path) both behave as designed.
+4. **Anonymous path** — “Continue without signing in” completes onboarding and
+   lands on MainShell.
+5. **Reload persistence** — After completing onboarding + auth choices,
+   hard reload; user should not replay onboarding incorrectly.
+6. **Apple on web** — Expect graceful failure / `authAppleUnavailableWeb`
+   messaging (Apple web not wired in Sprint 1.5).
+
+**Samsung SM-G990E — Tests 7–8**
+
+7. **Google sign-in** — Native Android Google flow (`google_sign_in` +
+   Firebase).
+8. **Apple sign-in on Android** — Document actual behavior (`isAvailable` /
+   graceful messaging); acceptable outcomes include “not available” UX.
+
+After **all eight** pass → **Sprint 1 fully closed**. **Sprint 2** (Daily
+Question + Self-Test) becomes next.
 
 Sprint 1 sub-sprint status:
 
@@ -38,8 +47,10 @@ Sprint 1 sub-sprint status:
 | 1.2 | Theme + i18n + ServerTimeService | ✅ done |
 | 1.3 | Anonymous auth + onboarding (UI only) | ✅ done + smoke-tested |
 | 1.4 | go_router + 5-tab main shell + empty states | ✅ done + smoke-tested |
-| 1.4.5 | Refactor to 4-tab (Home/Tournaments/Leaderboard/Profile) + Home cards | next |
-| 1.5 | Apple + Google + Email providers + `linkWithCredential` | pending (also depends on iOS Developer Console manual setup) |
+| 1.4.5 | 4-tab MainShell + Home cards + standalone routes | ✅ done + smoke-tested (Chrome, 7 scenarios, prior session on 5-tab→4-tab refactor path) |
+| 1.5 | Apple + Google + Email + `linkWithCredential` | ✅ done code-complete; quality gates clean; **awaiting** 8-scenario smoke above |
+| 1.5.5 | Recovery + `Info.plist` + ARB verification | ✅ done |
+| **Sprint 1 close** | **8-scenario smoke (Chrome 1–6 + Samsung 7–8)** | **first task — next session** |
 
 Mascot artwork is NOT a Sprint 1 dependency — placeholder
 `CircleAvatar(brandOrange) + Icons.psychology` ships in 1.3 (already)
@@ -57,9 +68,10 @@ markers are present in `welcome_screen.dart`, `age_gate_screen.dart`
   GoDaddy, 3-year, WHOIS privacy ON, Tam Alan Adi Korumasi OFF, Kurumsal
   E-posta Pro Light OFF. **Mert handles this directly, not via Cursor.**~~
   ✅ Done 2026-04-30.
-- **Apple Developer enrollment under Stratech FZCO** — already enrolled per
-  Flit; verify Brainjamin is set up as a separate App Store Connect record,
-  not a Flit variant.
+- ~~**Apple Developer enrollment under Stratech FZCO** — verify Brainjamin is set
+  up as a separate App Store Connect record under existing Stratech FZCO Apple
+  Developer Program (Team ID `J863Y2PK9U`), not a Flit variant. App Store
+  Connect App ID `6765467964` created.~~ ✅ Done 2026-04-30.
 - **Google Play Console** — Brainjamin listing under Stratech FZCO. Same
   verification.
 - ~~**Firebase project creation** — `brainjamin-prod` (or similar). Enable:
@@ -124,6 +136,13 @@ markers are present in `welcome_screen.dart`, `age_gate_screen.dart`
 - **Screenshot template design** — 8 screenshots, brand orange gradient,
   EN copy, mascot present in at least 4. Mobile-first.
 - **Preview video production** — 15-30 sec, EN, muted auto-play optimized.
+
+### Pre-launch ops (DNS + email routing — still open)
+
+- **`brainjamin.com` DNS** — Point apex/domain to **Firebase Hosting**; wire
+  **Cloudflare Email Routing** (or equivalent) for `support@` / `legal@` /
+  `privacy@` forwards per P1 ops notes. **Not done yet —** schedule with
+  **Sprint 6/7** (build + submission sprint) unless Mert pulls it forward.
 
 ### Anthropic / OpenAI / Gemini provisioning
 - **OpenAI account + API key + initial credit** — for fallback chain (V1.12
@@ -455,6 +474,120 @@ mapped to Cursor sprint sequence), Brainjamin's sprints:
 
 ## ✅ RECENTLY DONE
 
+### 2026-04-30 (akşam) — Sprint 1.5.5 closed (auth recovery + verification)
+
+Three tasks: ARB baseline diff (could not execute — no Sprint 1.4.5 commit in
+git history because all sprints in this session were uncommitted; flagged
+correctly per CB-8, no fabrication), Info.plist CFBundleURLTypes added with
+REVERSED_CLIENT_ID
+`com.googleusercontent.apps.1047648611720-36o7lult2k7iob1f397q89tn1puesm08`
+(top-level sibling, well-formed XML), 21 Sprint 1.5 ARB keys verified present
+(the 24 in spec was a count-error — `accountExists*` 4 + `authError*` 6 +
+email sheet/UI 11 = 21, and `authErrorGeneric` was double-counted in spec).
+
+Quality gates: `flutter analyze` → No issues found. `flutter test` → 2/2 passed.
+`git grep "FF9F04"` / `"DateTime.now()"` / `"_showComingSoon"` → 0 hits each.
+
+### 2026-04-30 (akşam) — flutterfire configure regen + Firebase Console SHA setup (Mert manual)
+
+- `flutterfire configure --project=brainjamin-prod-app --platforms=ios,android,web --yes` ran successfully on Mert's machine after Cursor failed in MINGW64 (interactive auth issue).
+- `GoogleService-Info.plist` downloaded manually from Firebase Console → `ios/Runner/GoogleService-Info.plist` (CLI didn't write the iOS plist on Windows host — known issue).
+- Android debug keystore SHA-1 (`A1:7C:F0:BC:BF:96:DC:AF:F5:87:EB:97:42:4C:00:FF:64:AE:04:30`) and SHA-256 (`0E:58:53:E0:60:19:58:EA:DB:73:9A:8B:E3:5B:92:45:74:B1:24:7B:F6:1A:EA:D4:CD:5D:DE:FE:C6:57:8C:55`) added to Firebase Console → Brainjamin (`android`) app fingerprints.
+- `flutterfire configure` rerun → `google-services.json` now has `oauth_client` populated (2 OAuth clients in first client object).
+- Release keystore SHA fingerprints deferred to Sprint 8 (Beta + soft launch). Debug keystore is sufficient for Sprint 1 + dev work.
+
+### 2026-04-30 (akşam) — Sprint 1.5 code-complete (auth providers + linkWithCredential)
+
+Goals: Apple + Google + Email/Password providers + linkWithCredential-first
+conversion preserving anonymous progress per CONTEXT § Auth.
+
+Files created:
+
+- `lib/core/services/auth_result.dart` — sealed `AuthResult` sum type (`AuthSuccess`, `AuthLinkedToExistingAccount`, `AuthFailure`, `AuthCancelled`)
+- `lib/core/utils/auth_error_localizations.dart` — Firebase error code → ARB key mapping
+- `lib/features/onboarding/email_sign_in_sheet.dart` — email/password bottom sheet with `fetchSignInMethodsForEmail`-based disambiguation + segmented Sign up/Sign in fallback
+- `ios/Runner/Runner.entitlements` — Sign In with Apple capability (Default)
+
+Files modified:
+
+- `pubspec.yaml` — `sign_in_with_apple` ^7.0.1, `google_sign_in` ^7.2.0, `crypto` ^3.0.6 added
+- `lib/core/services/auth_service.dart` — `linkOrSignInWithApple`, `linkOrSignInWithGoogle`, `linkOrSignInWithEmail` (sign-up + sign-in branches), `signInWithCredentialReplacingAnonymous`, `signOut`. Apple nonce SHA-256 + `OAuthProvider("apple.com")`. Google: native `authenticate()` on mobile, `signInWithPopup` on web. Web Apple → `AuthFailure('apple_web_unsupported')`.
+- `lib/core/services/onboarding_state_service.dart` — `brainjamin.auth.onboarding_completed` key + persist/clear/read
+- `lib/core/services/onboarding_flow_controller.dart` — `isAuthCompleted` flag, `markAuthCompleted`, `reloadAuthDismissalFromPersistence`
+- `lib/core/bootstrap/app_bootstrap.dart` — loads `authCompleted` into `BootstrapResult`
+- `lib/main.dart` — passes `initialAuthCompleted` to `OnboardingFlowController`
+- `lib/router/app_router.dart` — `TODO(sprint-5)` on auth flag vs routing (Profile tab will read `isAuthCompleted`)
+- `lib/features/onboarding/sign_in_screen.dart` — real OAuth/email handlers with loading state, `AlertDialog` for credential-already-in-use (“Switch accounts” path), Brainjamin-voice error mapping
+- `lib/l10n/app_en.arb` — 21 new keys for Sprint 1.5 (account-conflict dialog, error messages, email sheet UI). NOTE: file was rebuilt mid-sprint after an accidental git checkout reverted it; Sprint 1.4.5 ARB entries were re-authored from memory at this point — Sprint 6 EN copywriter pass will polish all copy regardless.
+- `ios/Runner.xcodeproj/project.pbxproj` — `CODE_SIGN_ENTITLEMENTS` for Debug/Release/Profile, file ref for `Runner.entitlements`
+- `test/widget_test.dart` — `TODO(sprint-7)` for future auth integration tests
+
+Quality gates: `flutter analyze` → No issues. `flutter test` → 2/2 passed. All grep gates 0 hits (FF9F04, DateTime.now, _showComingSoon, MainShellPlaceholder, SelfTestTab|ArenaTab|DuelTab).
+
+Implicit decisions:
+
+- Email disambiguation: `fetchSignInMethodsForEmail` (deprecated; ignore deprecation locally) when API returns; fallback to always-visible Sign up/Sign in segments. Anonymous path always uses `linkWithCredential`.
+- Apple on web: explicit `AuthFailure('apple_web_unsupported')` → `authAppleUnavailableWeb` localized message.
+- Google on web (anonymous): `User.linkWithPopup(GoogleAuthProvider)` preserves anonymous UID.
+- Apple on Android: `SignInWithApple.isAvailable()` check; falls back to `apple_unavailable_platform` message if native flow not supported.
+- Conflict dialog: red “Switch accounts” CTA (`BrainjaminColors.error`) for destructive emphasis.
+- `signOut`: clears `brainjamin.auth.onboarding_completed`; optional OnboardingFlowController re-sync hook for Sprint 5 Profile tab.
+
+Smoke test deferred to next session — 8 scenarios planned (Chrome 1–6, Samsung 7–8).
+
+### 2026-04-30 (akşam) — Apple Developer Program + App Store Connect + Firebase Auth providers setup
+
+Mert manual work, not Cursor.
+
+Apple Developer (Stratech Dynamic FZCO, Team ID `J863Y2PK9U`, shared with Flit):
+
+- App ID `com.stratech.brainjamin` registered with Sign In with Apple + Push Notifications capabilities
+- Service ID `com.stratech.brainjamin.signin` registered, configured: Primary App ID `com.stratech.brainjamin`, domain `brainjamin-prod-app.firebaseapp.com`, return URL `https://brainjamin-prod-app.firebaseapp.com/__/auth/handler`
+- Sign in with Apple Key registered (Key ID `L2K726P8TK`), `.p8` file stored locally at `C:\flutter_projects\secrets\brainjamin\AuthKey_L2K726P8TK.p8` (outside repo, never committed)
+- App Store Connect record created: Brainjamin / iOS / 1.0 Prepare for Submission, App Store Connect App ID `6765467964`
+- Listing content (screenshots, description, etc.) deferred to Sprint 6
+
+Firebase Console (`brainjamin-prod-app`):
+
+- Apple sign-in provider enabled with Service ID `com.stratech.brainjamin.signin` (Apple-side already trusts the Firebase callback URL via Service ID configuration)
+- Google sign-in provider enabled (project support email = `info@stratechdynamic.net`)
+- Email/Password sign-in provider enabled (Email link passwordless: kapalı per CONTEXT § Auth and Karar 2 from session)
+
+Apple `.p8` → Cloud Secret Manager NOT done — deferred per session decision (only needed for future server-side Apple identity verification, e.g. `revokeUserAccount`; not Sprint 1.5 scope).
+
+### 2026-04-30 (akşam) — Sprint 1.4.5 closed (4-tab refactor + Home cards)
+
+Demoted Self-Test, Arena, Duel from tabs to standalone routes (`/self-test`, `/arena`, `/duel`). Added Tournaments + Leaderboard tabs. Home rebuilt as 5-card surface.
+
+Files created:
+
+- `lib/core/widgets/mascot_empty_state.dart` — shared empty-state widget (CircleAvatar + brand orange + `Icons.psychology` placeholder, `TODO(mascot)` preserved)
+- `lib/features/self_test/self_test_screen.dart`, `lib/features/arena/arena_screen.dart`, `lib/features/duel/duel_screen.dart` — standalone screens, each using `MascotEmptyState`
+- `lib/features/main_shell/tabs/tournaments_tab.dart`, `lib/features/main_shell/tabs/leaderboard_tab.dart`
+- `lib/features/home/widgets/{daily_question_card, self_test_entry_card, quick_duel_card, active_arenas_card, next_live_countdown_card}.dart` — 5 placeholder Home cards with Material Card + brand-tinted accent + chevron + InkWell
+
+Files deleted: `lib/features/main_shell/tabs/{self_test_tab, arena_tab, duel_tab}.dart`
+
+Files modified:
+
+- `lib/features/main_shell/main_shell.dart` — 4-page IndexedStack (Home, Tournaments, Leaderboard, Profile), exposes `onNavigateToTab` callback to `HomeTab`
+- `lib/features/main_shell/tabs/home_tab.dart` — 5-card layout, no longer uses `MascotEmptyState`
+- `lib/features/main_shell/tabs/profile_tab.dart` — uses `MascotEmptyState`
+- `lib/router/app_router.dart` — 3 new top-level routes (`/self-test`, `/arena`, `/duel`); redirect tightened: any non-`/onboarding` path requires onboarding completion
+- `lib/l10n/app_en.arb` — 5 keys removed (`mainTabSelfTest`, `mainTabArena`, `mainTabDuel`, `homeEmptyTitle`, `homeEmptyBody`), 19 keys added (`mainTabTournaments`, `mainTabLeaderboard`, `*EmptyTitle/Body` for Tournaments + Leaderboard, screen titles, 10 Home card keys), 6 updated copy for screen-context (`selfTestEmpty*`, `arenaEmpty*`, `duelEmpty*`)
+- `test/widget_test.dart` unchanged (2 tests still pass)
+
+Implicit decisions:
+
+- Tab icons: Tournaments `Icons.emoji_events`, Leaderboard `Icons.leaderboard`
+- Card visual system: brand orange tint (alpha 0.06) + matching border (alpha 0.35), leading mode icon + trailing chevron, full-card InkWell
+- “Next Live Tournament” card: switches MainShell tab to Tournaments via `onNavigateToTab(1)`, not router push (preserves MainShell state)
+- Daily Question card: no-op tap with `TODO(sprint-2)` marker
+
+Quality gates: `flutter analyze` → No issues. `flutter test` → 2/2 passed. All grep gates 0 hits.
+
+Smoke-tested in Chrome (7 scenarios all passed): Welcome → Age Gate <13 block → ≥13 advance → Sign In + 3 placeholder buttons + anonymous CTA → MainShell entry on Home → 5-card Home + 4-tab nav across all tabs → reload persists → tab switch from Next Live card works. Step 12 (deep-link redirect from `/self-test` to `/onboarding/welcome` when storage cleared) was attempted but failed due to literal “PORT” placeholder in Mert's manual URL test; redirect logic itself is correct and will be naturally exercised in Sprint 1.5 smoke tests.
+
 ### 2026-04-30 (afternoon) — Sprint 1.4 closed
 
 Sprint 1.4 shipped go_router migration + 5-tab MainShell with
@@ -644,8 +777,9 @@ BRAINJAMIN_RULES.md:
 
 ## 📁 CODEBASE SNAPSHOT
 
-**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 + 1.4 implementation
-shipped. Local git only — no GitHub remote yet (Sprint 1.5 territory).
+**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 + 1.4 + **1.4.5 +
+1.5 + 1.5.5** implementation shipped in workspace. Confirm `origin` /
+GitHub presence before relying on backup — see push step after commit.
 Branch: `main`. Current concrete tree (only files Brainjamin owns —
 Flutter-generated Android/iOS/web boilerplate omitted for clarity):
 
@@ -657,67 +791,77 @@ lib/
     constants/
       app_colors.dart
     services/
-      auth_service.dart
-      onboarding_flow_controller.dart
+      auth_result.dart                         ← new (1.5)
+      auth_service.dart                        ← expanded (1.5)
+      onboarding_flow_controller.dart          ← expanded (1.5)
       onboarding_flow_provider.dart
-      onboarding_state_service.dart
+      onboarding_state_service.dart            ← expanded (1.5)
       server_time_service.dart
     theme/
       app_theme.dart
+    utils/
+      auth_error_localizations.dart            ← new (1.5)
+    widgets/
+      mascot_empty_state.dart                  ← new (1.4.5)
   features/
+    arena/
+      arena_screen.dart                        ← new (1.4.5)
+    duel/
+      duel_screen.dart                         ← new (1.4.5)
+    home/
+      widgets/
+        active_arenas_card.dart                ← new (1.4.5)
+        daily_question_card.dart               ← new (1.4.5)
+        next_live_countdown_card.dart          ← new (1.4.5)
+        quick_duel_card.dart                   ← new (1.4.5)
+        self_test_entry_card.dart              ← new (1.4.5)
     main_shell/
-      main_shell.dart
+      main_shell.dart                          ← refactored to 4-tab (1.4.5)
       tabs/
-        arena_tab.dart
-        duel_tab.dart
-        home_tab.dart
+        home_tab.dart                          ← rebuilt as 5-card (1.4.5)
+        leaderboard_tab.dart                   ← new (1.4.5)
         profile_tab.dart
-        self_test_tab.dart
+        tournaments_tab.dart                   ← new (1.4.5)
     onboarding/
       age_blocked_screen.dart
       age_gate_screen.dart
-      sign_in_screen.dart
+      email_sign_in_sheet.dart                 ← new (1.5)
+      sign_in_screen.dart                      ← real handlers (1.5)
       welcome_screen.dart
+    self_test/
+      self_test_screen.dart                    ← new (1.4.5)
   l10n/
-    app_en.arb
-  firebase_options.dart
+    app_en.arb                                 ← rebuilt (1.5)
+  firebase_options.dart                        ← regenerated (1.5.5)
   main.dart
   router/
-    app_router.dart
+    app_router.dart                            ← 3 routes added + redirect tightened (1.4.5)
+
+ios/
+  Runner/
+    GoogleService-Info.plist                   ← downloaded from Console (1.5.5)
+    Info.plist                                 ← CFBundleURLTypes added (1.5.5)
+    Runner.entitlements                        ← new, Sign In with Apple (1.5)
+  Runner.xcodeproj/project.pbxproj             ← CODE_SIGN_ENTITLEMENTS wired (1.5)
+
+android/
+  app/
+    google-services.json                       ← oauth_client populated (1.5.5)
 
 test/
-  widget_test.dart
+  widget_test.dart                             ← TODO(sprint-7) added (1.5)
 
 l10n.yaml
-pubspec.yaml
+pubspec.yaml                                   ← 3 new deps (1.5)
 pubspec.lock
 firebase.json
-BRAINJAMIN_CONTEXT.md
+BRAINJAMIN_CONTEXT.md                          ← § provenance + Apple Sign In identifiers
 BRAINJAMIN_RULES.md
-BRAINJAMIN_TODO.md
+BRAINJAMIN_TODO.md                             ← updated this session
 .gitignore
 analysis_options.yaml
 .metadata
 README.md
-```
-
-Expected additions in Sprint 1.4.5:
-
-```
-lib/features/main_shell/tabs/
-  tournaments_tab.dart       ← new
-  leaderboard_tab.dart       ← new
-lib/features/main_shell/tabs/
-  self_test_tab.dart         ← MOVED to lib/features/self_test/ as standalone screen
-  arena_tab.dart             ← MOVED to lib/features/arena/
-  duel_tab.dart              ← MOVED to lib/features/duel/
-lib/features/home/
-  widgets/
-    daily_question_card.dart
-    self_test_entry_card.dart
-    quick_duel_card.dart
-    active_arenas_card.dart
-    next_live_countdown_card.dart
 ```
 
 Files explicitly NOT carried over from Flit (do not port):

@@ -58,82 +58,222 @@
   },
   "signInWithApple": "Continue with Apple",
   "@signInWithApple": {
-    "description": "Placeholder sign-in button"
+    "description": "Sign-in sheet — Apple OAuth"
   },
   "signInWithGoogle": "Continue with Google",
   "@signInWithGoogle": {
-    "description": "Placeholder sign-in button"
+    "description": "Sign-in sheet — Google OAuth"
   },
   "signInWithEmail": "Continue with Email",
   "@signInWithEmail": {
-    "description": "Placeholder sign-in button"
+    "description": "Sign-in sheet — email bottom sheet launcher"
   },
   "signInComingSoon": "Brainjamin is sharpening this — coming in the next update.",
   "@signInComingSoon": {
-    "description": "SnackBar when OAuth/email not wired yet (mascot voice)"
+    "description": "Legacy mascot SnackBar (may be unused after Sprint 1.5)"
   },
   "signInContinueAnonymous": "Continue without signing in",
   "@signInContinueAnonymous": {
     "description": "Anonymous-first primary path (PR-4)"
   },
+  "accountExistsTitle": "This account already has a Brainjamin",
+  "@accountExistsTitle": {
+    "description": "TODO(copy) Sprint 1.5 account conflict dialog"
+  },
+  "accountExistsBody": "If you continue, your progress on this device will be lost. Brainjamin will switch you to your existing account.",
+  "@accountExistsBody": {
+    "description": "TODO(copy)"
+  },
+  "accountExistsCancel": "Cancel",
+  "@accountExistsCancel": {
+    "description": "TODO(copy)"
+  },
+  "accountExistsSwitch": "Switch accounts",
+  "@accountExistsSwitch": {
+    "description": "TODO(copy) destructive confirm"
+  },
+  "authErrorNetwork": "Brainjamin couldn't reach home base — check your signal and tap again?",
+  "@authErrorNetwork": {
+    "description": "TODO(copy) Sprint 1.5"
+  },
+  "authErrorWeakPassword": "Pick a tougher password — at least eight characters, please.",
+  "@authErrorWeakPassword": {
+    "description": "TODO(copy)"
+  },
+  "authErrorInvalidEmail": "That doesn't look quite like an email — give it another skim?",
+  "@authErrorInvalidEmail": {
+    "description": "TODO(copy)"
+  },
+  "authErrorWrongPassword": "That password isn't quite right. Try again, or flip to Sign up if you're new?",
+  "@authErrorWrongPassword": {
+    "description": "TODO(copy)"
+  },
+  "authErrorTooManyRequests": "Brainjamin's seeing too many taps too fast — take a sip of tea, then retry.",
+  "@authErrorTooManyRequests": {
+    "description": "TODO(copy)"
+  },
+  "authErrorGeneric": "Brainjamin tripped over something. Try again?",
+  "@authErrorGeneric": {
+    "description": "TODO(copy)"
+  },
+  "authFieldRequired": "Mind filling this in?",
+  "@authFieldRequired": {
+    "description": "TODO(copy) Validator empty-field nudge"
+  },
+  "emailSignInSheetTitle": "Email & password",
+  "@emailSignInSheetTitle": {
+    "description": "TODO(copy) Sprint 1.5 bottom sheet"
+  },
+  "emailSignInTabSignUp": "Sign up",
+  "@emailSignInTabSignUp": {
+    "description": "TODO(copy) Segmented UX fallback"
+  },
+  "emailSignInTabSignIn": "Sign in",
+  "@emailSignInTabSignIn": {
+    "description": "TODO(copy)"
+  },
+  "emailHint": "you@something.com",
+  "@emailHint": {
+    "description": "TODO(copy)"
+  },
+  "passwordHint": "At least 8 characters",
+  "@passwordHint": {
+    "description": "TODO(copy)"
+  },
+  "emailContinue": "Continue",
+  "@emailContinue": {
+    "description": "TODO(copy)"
+  },
+  "emailSignInFetchFallbackHint": "Firebase can't peek at whether this email exists yet — pick what feels right for you.",
+  "@emailSignInFetchFallbackHint": {
+    "description": "TODO(copy)"
+  },
+  "emailSignInEmailLabel": "Email",
+  "@emailSignInEmailLabel": {
+    "description": "TODO(copy)"
+  },
+  "emailSignInPasswordLabel": "Password",
+  "@emailSignInPasswordLabel": {
+    "description": "TODO(copy)"
+  },
+  "authAppleUnavailableWeb": "Apple sign-in on the web isn't open quite yet — Google's ready, or try email?",
+  "@authAppleUnavailableWeb": {
+    "description": "TODO(copy)"
+  },
   "mainTabHome": "Home",
   "@mainTabHome": {
     "description": "Main shell bottom nav — Home"
-  },
-  "mainTabSelfTest": "Self-Test",
-  "@mainTabSelfTest": {
-    "description": "Main shell bottom nav — Self-Test"
-  },
-  "mainTabArena": "Arena",
-  "@mainTabArena": {
-    "description": "Main shell bottom nav — Arena"
-  },
-  "mainTabDuel": "Duel",
-  "@mainTabDuel": {
-    "description": "Main shell bottom nav — Duel"
   },
   "mainTabProfile": "Profile",
   "@mainTabProfile": {
     "description": "Main shell bottom nav — Profile"
   },
-  "homeEmptyTitle": "Today's question is warming up.",
-  "@homeEmptyTitle": {
-    "description": "Home tab empty state title"
+  "mainTabTournaments": "Tournaments",
+  "@mainTabTournaments": {
+    "description": "TODO(copy) Sprint 1.4.5 tab label"
   },
-  "homeEmptyBody": "Brainjamin's picking something good. Check back in a moment.",
-  "@homeEmptyBody": {
-    "description": "Home tab empty state body"
+  "mainTabLeaderboard": "Leaderboard",
+  "@mainTabLeaderboard": {
+    "description": "TODO(copy) Sprint 1.4.5 tab label"
   },
-  "selfTestEmptyTitle": "Pick a category to flex on.",
+  "selfTestScreenTitle": "Self-Test",
+  "@selfTestScreenTitle": {
+    "description": "TODO(copy) standalone /self-test AppBar"
+  },
+  "arenaScreenTitle": "Arena",
+  "@arenaScreenTitle": {
+    "description": "TODO(copy) standalone /arena AppBar"
+  },
+  "duelScreenTitle": "Duel",
+  "@duelScreenTitle": {
+    "description": "TODO(copy) standalone /duel AppBar"
+  },
+  "tournamentsEmptyTitle": "No tournaments yet",
+  "@tournamentsEmptyTitle": {
+    "description": "TODO(copy)"
+  },
+  "tournamentsEmptyBody": "Brainjamin is cooking up the next round — check back soon.",
+  "@tournamentsEmptyBody": {
+    "description": "TODO(copy)"
+  },
+  "leaderboardEmptyTitle": "Leaderboards open up soon",
+  "@leaderboardEmptyTitle": {
+    "description": "TODO(copy)"
+  },
+  "leaderboardEmptyBody": "Brainjamin needs more brains to crown a champion. Hang tight.",
+  "@leaderboardEmptyBody": {
+    "description": "TODO(copy)"
+  },
+  "homeCardDailyTitle": "Today's question",
+  "@homeCardDailyTitle": {
+    "description": "TODO(copy)"
+  },
+  "homeCardDailyBody": "Brainjamin is sharpening today's puzzle.",
+  "@homeCardDailyBody": {
+    "description": "TODO(copy)"
+  },
+  "homeCardSelfTestTitle": "Self-Test",
+  "@homeCardSelfTestTitle": {
+    "description": "TODO(copy)"
+  },
+  "homeCardSelfTestBody": "Pick a category and prove yourself.",
+  "@homeCardSelfTestBody": {
+    "description": "TODO(copy)"
+  },
+  "homeCardQuickDuelTitle": "Quick Duel",
+  "@homeCardQuickDuelTitle": {
+    "description": "TODO(copy)"
+  },
+  "homeCardQuickDuelBody": "Find an opponent in seconds.",
+  "@homeCardQuickDuelBody": {
+    "description": "TODO(copy)"
+  },
+  "homeCardActiveArenasTitle": "Your Arenas",
+  "@homeCardActiveArenasTitle": {
+    "description": "TODO(copy)"
+  },
+  "homeCardActiveArenasBody": "Brainjamin will list your invites here.",
+  "@homeCardActiveArenasBody": {
+    "description": "TODO(copy)"
+  },
+  "homeCardNextLiveTitle": "Next Live Tournament",
+  "@homeCardNextLiveTitle": {
+    "description": "TODO(copy)"
+  },
+  "homeCardNextLiveBody": "Brainjamin is warming up — countdown soon.",
+  "@homeCardNextLiveBody": {
+    "description": "TODO(copy)"
+  },
+  "selfTestEmptyTitle": "Pick a category",
   "@selfTestEmptyTitle": {
-    "description": "Self-Test tab empty state title"
+    "description": "Standalone Self-Test placeholder title"
   },
-  "selfTestEmptyBody": "Twenty topics, endless questions. Brainjamin keeps score.",
+  "selfTestEmptyBody": "Brainjamin is sharpening these categories — they'll land soon.",
   "@selfTestEmptyBody": {
-    "description": "Self-Test tab empty state body"
+    "description": "Standalone Self-Test placeholder"
   },
-  "arenaEmptyTitle": "No arenas right now.",
+  "arenaEmptyTitle": "Arena matches are assembling",
   "@arenaEmptyTitle": {
-    "description": "Arena tab empty state title"
+    "description": "Standalone Arena placeholder title"
   },
-  "arenaEmptyBody": "Start one yourself — Brainjamin loves a fresh face-off.",
+  "arenaEmptyBody": "Brainjamin hasn't hung the brackets yet — check back shortly.",
   "@arenaEmptyBody": {
-    "description": "Arena tab empty state body"
+    "description": "Standalone Arena placeholder"
   },
-  "duelEmptyTitle": "No duels in flight.",
+  "duelEmptyTitle": "Quick Duel is gearing up",
   "@duelEmptyTitle": {
-    "description": "Duel tab empty state title"
+    "description": "Standalone Duel placeholder title"
   },
-  "duelEmptyBody": "Challenge a friend, or let Brainjamin find you a worthy match.",
+  "duelEmptyBody": "Brainjamin is aligning worthy opponents — first real duels arrive soon.",
   "@duelEmptyBody": {
-    "description": "Duel tab empty state body"
+    "description": "Standalone Duel placeholder"
   },
   "profileEmptyTitle": "Your story starts here.",
   "@profileEmptyTitle": {
-    "description": "Profile tab empty state title"
+    "description": "Profile tab empty title"
   },
   "profileEmptyBody": "Play a few rounds and Brainjamin will fill this with your wins.",
   "@profileEmptyBody": {
-    "description": "Profile tab empty state body"
+    "description": "Profile tab empty body"
   }
 }
