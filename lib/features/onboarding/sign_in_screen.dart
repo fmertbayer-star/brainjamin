@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../core/constants/app_colors.dart';
-import '../../core/services/onboarding_state_service.dart';
-import 'onboarding_routes.dart';
+import '../../core/services/onboarding_flow_provider.dart';
 
 class SignInScreen extends StatelessWidget {
   const SignInScreen({super.key});
@@ -17,12 +16,7 @@ class SignInScreen extends StatelessWidget {
   }
 
   Future<void> _continueAnonymous(BuildContext context) async {
-    await OnboardingStateService.markOnboardingCompleted();
-    if (!context.mounted) return;
-    Navigator.of(context).pushNamedAndRemoveUntil(
-      OnboardingRoutes.root,
-      (_) => false,
-    );
+    await OnboardingFlowProvider.of(context).markOnboardingCompleted();
   }
 
   @override

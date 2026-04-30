@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 /// Brand and semantic colors for Brainjamin (light theme).
 ///
-/// PR-1: `#FF9F04` is BANNED everywhere — do not use that hex in UI, code,
-/// comments, or docs. Brand orange is `#F97316` only.
+/// PR-1: the legacy secondary orange called out in BRAINJAMIN_RULES.md is BANNED
+/// everywhere. Brand orange is `#F97316` only.
 
 /// Named color tokens for the Brainjamin light theme.
 final class BrainjaminColors {

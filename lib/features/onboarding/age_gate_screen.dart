@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/constants/app_colors.dart';
-import '../../core/services/onboarding_state_service.dart';
+import '../../core/services/onboarding_flow_provider.dart';
 import '../../core/services/server_time_service.dart';
-import 'sign_in_screen.dart';
 
 class AgeGateScreen extends StatefulWidget {
   const AgeGateScreen({super.key});
@@ -30,20 +30,13 @@ class _AgeGateScreenState extends State<AgeGateScreen> {
     final birthYear = _birthYear!;
     final birthMonth = _birthMonth!;
     if (!_passesAgeGate(birthYear, birthMonth)) {
-      await Navigator.of(context).push<void>(
-        MaterialPageRoute<void>(
-          builder: (_) => const _AgeBlockedScreen(),
-        ),
-      );
+      if (!mounted) return;
+      context.goNamed('onboarding-age-blocked');
       return;
     }
-    await OnboardingStateService.markAgeGatePassed();
+    await OnboardingFlowProvider.of(context).markAgeGatePassed();
     if (!mounted) return;
-    await Navigator.of(context).pushReplacement(
-      MaterialPageRoute<void>(
-        builder: (_) => const SignInScreen(),
-      ),
-    );
+    context.goNamed('onboarding-sign-in');
   }
 
   @override
@@ -118,64 +111,6 @@ class _AgeGateScreenState extends State<AgeGateScreen> {
               FilledButton(
                 onPressed: canContinue ? _onContinue : null,
                 child: Text(l10n.ageGateContinue),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _AgeBlockedScreen extends StatelessWidget {
-  const _AgeBlockedScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const Spacer(),
-              // TODO(mascot): replace with illustrator deliverable per PR-14
-              const CircleAvatar(
-                radius: 64,
-                backgroundColor: BrainjaminColors.brandOrange,
-                child: Icon(
-                  Icons.psychology,
-                  size: 64,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                l10n.ageGateBlockedTitle,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: BrainjaminColors.onSurface,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                l10n.ageGateBlockedBody,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: BrainjaminColors.onSurfaceMuted,
-                ),
-              ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.ageGateBlockedBack),
-                ),
               ),
             ],
           ),

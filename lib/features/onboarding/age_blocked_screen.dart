@@ -4,9 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_colors.dart';
 
-/// PR-14 mascot surface — placeholder until illustrator asset ships.
-class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key});
+class AgeBlockedScreen extends StatelessWidget {
+  const AgeBlockedScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,18 +29,18 @@ class WelcomeScreen extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               Text(
-                l10n.welcomeTitle,
+                l10n.ageGateBlockedTitle,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.displayMedium?.copyWith(
+                style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: BrainjaminColors.brandOrange,
+                  color: BrainjaminColors.onSurface,
                 ),
               ),
               const SizedBox(height: 12),
               Text(
-                l10n.welcomeBody,
+                l10n.ageGateBlockedBody,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: BrainjaminColors.onSurfaceMuted,
@@ -50,11 +49,10 @@ class WelcomeScreen extends StatelessWidget {
               const Spacer(),
               SizedBox(
                 width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    context.goNamed('onboarding-age-gate');
-                  },
-                  child: Text(l10n.welcomeCta),
+                child: OutlinedButton(
+                  onPressed: () =>
+                      context.goNamed('onboarding-age-gate'),
+                  child: Text(l10n.ageGateBlockedBack),
                 ),
               ),
             ],

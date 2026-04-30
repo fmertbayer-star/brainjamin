@@ -76,12 +76,64 @@
   "@signInContinueAnonymous": {
     "description": "Anonymous-first primary path (PR-4)"
   },
-  "mainPlaceholderTitle": "You're in.",
-  "@mainPlaceholderTitle": {
-    "description": "Temporary main shell placeholder title"
+  "mainTabHome": "Home",
+  "@mainTabHome": {
+    "description": "Main shell bottom nav — Home"
   },
-  "mainPlaceholderSubtitle": "Brainjamin's stage is being built — Sprint 1.4 ships the real shell.",
-  "@mainPlaceholderSubtitle": {
-    "description": "Temporary copy until tab shell exists"
+  "mainTabSelfTest": "Self-Test",
+  "@mainTabSelfTest": {
+    "description": "Main shell bottom nav — Self-Test"
+  },
+  "mainTabArena": "Arena",
+  "@mainTabArena": {
+    "description": "Main shell bottom nav — Arena"
+  },
+  "mainTabDuel": "Duel",
+  "@mainTabDuel": {
+    "description": "Main shell bottom nav — Duel"
+  },
+  "mainTabProfile": "Profile",
+  "@mainTabProfile": {
+    "description": "Main shell bottom nav — Profile"
+  },
+  "homeEmptyTitle": "Today's question is warming up.",
+  "@homeEmptyTitle": {
+    "description": "Home tab empty state title"
+  },
+  "homeEmptyBody": "Brainjamin's picking something good. Check back in a moment.",
+  "@homeEmptyBody": {
+    "description": "Home tab empty state body"
+  },
+  "selfTestEmptyTitle": "Pick a category to flex on.",
+  "@selfTestEmptyTitle": {
+    "description": "Self-Test tab empty state title"
+  },
+  "selfTestEmptyBody": "Twenty topics, endless questions. Brainjamin keeps score.",
+  "@selfTestEmptyBody": {
+    "description": "Self-Test tab empty state body"
+  },
+  "arenaEmptyTitle": "No arenas right now.",
+  "@arenaEmptyTitle": {
+    "description": "Arena tab empty state title"
+  },
+  "arenaEmptyBody": "Start one yourself — Brainjamin loves a fresh face-off.",
+  "@arenaEmptyBody": {
+    "description": "Arena tab empty state body"
+  },
+  "duelEmptyTitle": "No duels in flight.",
+  "@duelEmptyTitle": {
+    "description": "Duel tab empty state title"
+  },
+  "duelEmptyBody": "Challenge a friend, or let Brainjamin find you a worthy match.",
+  "@duelEmptyBody": {
+    "description": "Duel tab empty state body"
+  },
+  "profileEmptyTitle": "Your story starts here.",
+  "@profileEmptyTitle": {
+    "description": "Profile tab empty state title"
+  },
+  "profileEmptyBody": "Play a few rounds and Brainjamin will fill this with your wins.",
+  "@profileEmptyBody": {
+    "description": "Profile tab empty state body"
   }
 }

@@ -5,36 +5,40 @@ Last updated: 2026-04-30
 
 ## NEXT UP — Active Thread
 
-**Sprint 1 IN PROGRESS — Sprint 1.4 is next, gated by a smoke test.**
+**Sprint 1.4 closed 2026-04-30. Sprint 1.4.5 (refactor) is next.**
 
-The architecture phase is complete (16 architectural decisions closed
-2026-04-29 — see RECENTLY DONE). Sprint 1.1, 1.2, and 1.3 implementation
-all completed in the 2026-04-30 session (see RECENTLY DONE for the full
-timeline).
+Sprint 1.4 shipped go_router migration + 5-tab MainShell + mascot-voice
+empty states + ARB updates. Smoke-tested in Chrome — all 7 scenarios
+passed (Welcome → Age Gate <13 block → Age Gate ≥13 → Sign In →
+anonymous continue → 5-tab navigation → reload persistence).
 
-**Open at session end (2026-04-30):** Sprint 1.3 code passed
-`flutter analyze` and `flutter test` (2/2), but the onboarding flow was
-NOT manually smoke-tested in Chrome before session close. The first
-action in the next session must be:
+Tab structure decision (open at session end): the current 5-tab layout
+(Home / Self-Test / Arena / Duel / Profile) is interim. Final Sprint
+1.4.5 layout will be 4 tabs: **Home / Tournaments / Leaderboard /
+Profile** — with Self-Test, Arena, and Duel demoted to sub-routes
+(`/self-test`, `/arena`, `/duel`) reachable from Home cards. Rationale:
+Daily Question alone doesn't justify a tab; Home should be a "quick
+play" landing surface aggregating Daily + Self-Test entry + Quick Duel
++ active Arenas + next Live countdown. Tournaments and Leaderboard each
+warrant standalone tabs.
 
-1. Open Cursor in `C:\flutter_projects\brainjamin`, run
-   `flutter run -d chrome`
-2. Walk the full flow — Welcome → Age Gate (try both <13 block and ≥13
-   pass) → Sign-in screen (each placeholder button shows snackbar; the
-   "Continue without signing in" tonal button advances) → MainShellPlaceholder
-3. Reload the page and confirm second launch skips onboarding (lands
-   directly on MainShellPlaceholder)
-4. If anything is broken, treat the next prompt as a 1.3 fix sprint.
-   If everything works, move to Sprint 1.4.
+Sprint 1.4.5 prerequisites (Mert + Claude work, not Cursor):
+- Re-read BRAINJAMIN_CONTEXT.md to verify: (1) game mode list complete,
+  (2) Leaderboard V1 scope (global vs categorical vs both), (3)
+  anonymous user handling for Tournaments + Leaderboard tabs (PR-4
+  says full play but no public surface — Leaderboard tab needs a
+  "sign in to appear" CTA decision).
+- Then Claude drafts Sprint 1.4.5 Cursor prompt.
 
 Sprint 1 sub-sprint status:
 
 | Sub-sprint | Scope | Status |
 |---|---|---|
-| 1.1 | Bootstrap | ✅ done (commit `89496a7`) |
-| 1.2 | Theme + i18n + ServerTimeService | ✅ done — committed |
-| 1.3 | Anonymous auth + onboarding (UI only) | ✅ code-complete + tests green; **manual smoke test pending** |
-| 1.4 | 5-tab main shell + empty states | next, gated by 1.3 smoke test |
+| 1.1 | Bootstrap | ✅ done |
+| 1.2 | Theme + i18n + ServerTimeService | ✅ done |
+| 1.3 | Anonymous auth + onboarding (UI only) | ✅ done + smoke-tested |
+| 1.4 | go_router + 5-tab main shell + empty states | ✅ done + smoke-tested |
+| 1.4.5 | Refactor to 4-tab (Home/Tournaments/Leaderboard/Profile) + Home cards | next |
 | 1.5 | Apple + Google + Email providers + `linkWithCredential` | pending (also depends on iOS Developer Console manual setup) |
 
 Mascot artwork is NOT a Sprint 1 dependency — placeholder
@@ -451,6 +455,76 @@ mapped to Cursor sprint sequence), Brainjamin's sprints:
 
 ## ✅ RECENTLY DONE
 
+### 2026-04-30 (afternoon) — Sprint 1.4 closed
+
+Sprint 1.4 shipped go_router migration + 5-tab MainShell with
+mascot-voice empty states.
+
+Files created:
+- lib/core/services/onboarding_flow_controller.dart — ChangeNotifier
+  wrapping OnboardingStateService, in-memory flag mirror so
+  go_router redirect (sync) can read without async lookup
+- lib/core/services/onboarding_flow_provider.dart — InheritedNotifier,
+  no `provider` package
+- lib/router/app_router.dart — single GoRouter factory; redirect logic
+  uses controller flags to gate `/` and `/onboarding/*` access
+- lib/features/main_shell/main_shell.dart — NavigationBar (M3) +
+  IndexedStack for tab state preservation
+- lib/features/main_shell/tabs/{home,self_test,arena,duel,profile}_tab.dart
+  — 5 placeholder tabs, mascot CircleAvatar + Brainjamin-voice empty
+  state copy
+- lib/features/onboarding/age_blocked_screen.dart — extracted from
+  age_gate_screen.dart for separate go_router route registration
+
+Files deleted:
+- lib/features/onboarding/onboarding_gate.dart (logic moved to
+  go_router redirect)
+- lib/features/onboarding/onboarding_routes.dart (route names now in
+  AppRouter)
+
+Files modified:
+- pubspec.yaml — go_router ^14.6.2 added (resolved to 14.8.1 in lock)
+- lib/main.dart — MaterialApp.router + StatefulWidget owning controller
+  and GoRouter for app lifetime
+- lib/core/bootstrap/app_bootstrap.dart — returns BootstrapResult with
+  preloaded SharedPreferences flags
+- lib/features/onboarding/{welcome,age_gate,sign_in}_screen.dart —
+  migrated to context.goNamed; sign_in's anonymous CTA now relies on
+  controller notifyListeners triggering go_router redirect
+- lib/l10n/app_en.arb — tab titles + 5 empty state title/body pairs
+  (mascot voice draft, marked TODO(copy) for EN copywriter polish)
+- lib/core/constants/app_colors.dart — PR-1 comment rephrased so
+  banned hex string does not appear in lib/ (grep gate compliance)
+- test/widget_test.dart — both tests updated to pump
+  BrainjaminApp(bootstrap: BootstrapResult(...)) directly, isolated
+  from Firebase
+
+Quality gates:
+- flutter analyze: No issues found
+- flutter test: 2/2 passed
+- git grep "FF9F04" lib/ test/ → 0 hits
+- git grep "DateTime.now()" lib/features/ → 0 hits
+- git grep "MainShellPlaceholder" → 0 hits
+- git grep "Navigator.of(context).push" lib/ → 0 hits
+
+Smoke test (Chrome, 7 scenarios all passed): Welcome render → Age Gate
+<13 block + Go back → Age Gate ≥13 advance → Sign In screen + 3
+placeholder buttons + anonymous CTA → MainShell entry on Home tab →
+5-tab navigation across all tabs (mascot empty states render correctly)
+→ reload (Ctrl+R) skips onboarding and lands on MainShell directly.
+
+Architectural notes:
+- go_router 14.8.1 resolved (asked for 14.6.2; lock pinned newer minor
+  within caret range — acceptable)
+- One ignore comment retained: `// ignore:
+  prefer_const_constructors_in_immutables` on OnboardingFlowProvider
+  constructor — InheritedNotifier's notifier param is mutable
+  ChangeNotifier so genuine const is impossible; suppression is
+  correct, no real bug risk
+- Tab structure (Home / Self-Test / Arena / Duel / Profile) is interim
+  — Sprint 1.4.5 refactors to final 4-tab layout per Brainjamin's
+  game mode taxonomy
+
 ### 2026-04-30 (afternoon) — Sprint 1.1, 1.2, 1.3 implementation
 
 Three sub-sprints implemented in one Cursor session, all passing
@@ -486,10 +560,8 @@ NEXT UP).
   - `welcome_screen.dart` — mascot placeholder (CircleAvatar + Icons.psychology + TODO marker), title, body, "Let's go" CTA in mascot voice
   - `age_gate_screen.dart` — neutral birth month + birth year dropdowns (NOT Yes/No per PR-11). Age computed via `ServerTimeService.now()`. Under-13 routes to private `_AgeBlockedScreen` with "Brainjamin is for ages 13 and up." (PR-11 exact text) + "Go back" button (no bypass).
   - `sign_in_screen.dart` — 3 OutlinedButtons (Apple/Google/Email) showing localized snackbar ("Brainjamin is sharpening this — coming in the next update."). Bottom prominent `FilledButton.tonal` "Continue without signing in" per PR-4 anonymous-first.
-  - `onboarding_gate.dart` — top-level entry; reads `OnboardingStateService.isOnboardingCompleted()`, routes to MainShellPlaceholder or WelcomeScreen.
-  - `onboarding_routes.dart` — extracted to break a circular import (Cursor's good call — not in original spec, structurally correct).
-- `MainShellPlaceholder` — temporary widget showing "You're in." + "Brainjamin's stage is being built — Sprint 1.4 ships the real shell." TODO marker present for 1.4 deletion.
-- `lib/main.dart` — smoke screen replaced with `home: const OnboardingGate()`; named routes registered.
+  - (Superseded in Sprint 1.4) `onboarding_gate.dart` was the top-level entry; replaced by `go_router` redirects + `OnboardingFlowController`.
+- `lib/main.dart` — `MaterialApp.router` with `go_router`; entry routes resolve to onboarding or `MainShell`.
 - `app_en.arb` — 16 new keys (welcomeTitle/Body/Cta, ageGate*, signIn*, mainPlaceholder*); old smoke keys removed.
 - `test/widget_test.dart` — replaced single smoke test with two tests: "Welcome shows on first launch" (empty SharedPreferences) and "Skips welcome when completed" (mocked completed flag). Both pump OnboardingGate directly without bootstrapping Firebase (clean test isolation).
 - Quality gates: `flutter analyze` → No issues. `flutter test` → 2/2 passed. `git grep "FF9F04"` → only docs and PR-1 BANNED comment. `git grep "DateTime.now()"` in `lib/features/` → zero hits (only `server_time_service.dart` uses it, expected).
@@ -572,7 +644,7 @@ BRAINJAMIN_RULES.md:
 
 ## 📁 CODEBASE SNAPSHOT
 
-**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 implementation
+**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 + 1.4 implementation
 shipped. Local git only — no GitHub remote yet (Sprint 1.5 territory).
 Branch: `main`. Current concrete tree (only files Brainjamin owns —
 Flutter-generated Android/iOS/web boilerplate omitted for clarity):
@@ -581,58 +653,71 @@ Flutter-generated Android/iOS/web boilerplate omitted for clarity):
 lib/
   core/
     bootstrap/
-      app_bootstrap.dart       ← Firebase init + ServerTime + AnonymousAuth + Crashlytics
+      app_bootstrap.dart
     constants/
-      app_colors.dart          ← #F97316 only (PR-1 banned hex flagged in comment)
+      app_colors.dart
     services/
-      auth_service.dart        ← anonymous-first; real providers in 1.5
-      onboarding_state_service.dart  ← SharedPreferences flags only, no birth date
-      server_time_service.dart ← PR-10 .info/serverTimeOffset sync
+      auth_service.dart
+      onboarding_flow_controller.dart
+      onboarding_flow_provider.dart
+      onboarding_state_service.dart
+      server_time_service.dart
     theme/
-      app_theme.dart           ← Material 3, brand orange tokens
+      app_theme.dart
   features/
+    main_shell/
+      main_shell.dart
+      tabs/
+        arena_tab.dart
+        duel_tab.dart
+        home_tab.dart
+        profile_tab.dart
+        self_test_tab.dart
     onboarding/
-      welcome_screen.dart      ← mascot placeholder; TODO(mascot)
-      age_gate_screen.dart     ← birth month + year dropdowns; under-13 block
-      sign_in_screen.dart      ← Apple/Google/Email placeholders + anonymous CTA
-      onboarding_gate.dart     ← entry router; SharedPreferences-driven
-      onboarding_routes.dart   ← named routes constants (avoids import cycle)
+      age_blocked_screen.dart
+      age_gate_screen.dart
+      sign_in_screen.dart
+      welcome_screen.dart
   l10n/
-    app_en.arb                 ← 17 keys (appTitle + 16 onboarding)
-  firebase_options.dart        ← generated by FlutterFire CLI; do not edit
-  main.dart                    ← BrainjaminApp + theme + l10n delegates + home: OnboardingGate
+    app_en.arb
+  firebase_options.dart
+  main.dart
+  router/
+    app_router.dart
 
 test/
-  widget_test.dart             ← 2 tests, OnboardingGate isolated
+  widget_test.dart
 
 l10n.yaml
-pubspec.yaml                   ← 9 direct deps + flutter_localizations (sdk)
-pubspec.lock                   ← committed
-firebase.json                  ← single hosting target (default site)
-BRAINJAMIN_CONTEXT.md          ← @-referenced by Cursor prompts
-BRAINJAMIN_RULES.md            ← @-referenced by Cursor prompts
-BRAINJAMIN_TODO.md             ← this file; updated at session end
+pubspec.yaml
+pubspec.lock
+firebase.json
+BRAINJAMIN_CONTEXT.md
+BRAINJAMIN_RULES.md
+BRAINJAMIN_TODO.md
 .gitignore
 analysis_options.yaml
 .metadata
-README.md                      ← Flutter default; rewrite in Sprint 6
+README.md
 ```
 
-Expected additions in Sprint 1.4 (5-tab shell):
+Expected additions in Sprint 1.4.5:
 
 ```
-lib/
-  features/
-    main_shell/
-      main_shell.dart          ← bottom nav + 5-tab routing
-      tabs/
-        home_tab.dart
-        self_test_tab.dart
-        arena_tab.dart
-        duel_tab.dart
-        profile_tab.dart
-  router/
-    app_router.dart            ← single AppRouter (no brand/admin split per CONTEXT)
+lib/features/main_shell/tabs/
+  tournaments_tab.dart       ← new
+  leaderboard_tab.dart       ← new
+lib/features/main_shell/tabs/
+  self_test_tab.dart         ← MOVED to lib/features/self_test/ as standalone screen
+  arena_tab.dart             ← MOVED to lib/features/arena/
+  duel_tab.dart              ← MOVED to lib/features/duel/
+lib/features/home/
+  widgets/
+    daily_question_card.dart
+    self_test_entry_card.dart
+    quick_duel_card.dart
+    active_arenas_card.dart
+    next_live_countdown_card.dart
 ```
 
 Files explicitly NOT carried over from Flit (do not port):

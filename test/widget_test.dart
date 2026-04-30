@@ -1,41 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:brainjamin/core/theme/app_theme.dart';
-import 'package:brainjamin/features/onboarding/onboarding_gate.dart';
+import 'package:brainjamin/core/bootstrap/app_bootstrap.dart';
+import 'package:brainjamin/main.dart';
 
 void main() {
-  testWidgets('Onboarding gate shows welcome on first launch', (tester) async {
-    SharedPreferences.setMockInitialValues({});
+  testWidgets('Shows welcome when onboarding not completed', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        theme: BrainjaminTheme.light,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: const OnboardingGate(),
+      const BrainjaminApp(
+        bootstrap: BootstrapResult(
+          onboardingCompleted: false,
+          ageGatePassed: false,
+        ),
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text("Let's go"), findsOneWidget);
+    expect(find.text("Hello — I'm Brainjamin."), findsOneWidget);
   });
 
-  testWidgets('Onboarding gate skips welcome when already completed', (
-    tester,
-  ) async {
-    SharedPreferences.setMockInitialValues({
-      'brainjamin.onboarding.completed': true,
-    });
+  testWidgets('Shows main shell when onboarding completed', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        theme: BrainjaminTheme.light,
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: const OnboardingGate(),
+      const BrainjaminApp(
+        bootstrap: BootstrapResult(
+          onboardingCompleted: true,
+          ageGatePassed: true,
+        ),
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text("You're in."), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.text('Home'), findsWidgets);
   });
 }
