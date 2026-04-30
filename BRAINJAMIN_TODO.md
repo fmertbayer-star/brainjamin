@@ -1,40 +1,73 @@
 # BRAINJAMIN TODO
-Last updated: 2026-04-29
+Last updated: 2026-04-30
 
 ---
 
 ## NEXT UP — Active Thread
 
-**Cursor sprint 1 has not started yet.** Architecture phase is complete
-(16 architectural decisions closed in the 2026-04-29 session — see
-RECENTLY DONE). Before Cursor sprint 1 begins, three things must be in
-place:
+**Sprint 1 IN PROGRESS — Sprint 1.4 is next, gated by a smoke test.**
 
-1. Repo initialized (`flutter create brainjamin`)
-2. Domain registered (`brainjamin.com` purchase confirmed)
-3. Firebase project created (`brainjamin-prod`)
+The architecture phase is complete (16 architectural decisions closed
+2026-04-29 — see RECENTLY DONE). Sprint 1.1, 1.2, and 1.3 implementation
+all completed in the 2026-04-30 session (see RECENTLY DONE for the full
+timeline).
 
-Sprint 1 itself will be **"Bootstrap + Auth + Main shell"** — the same
-scope Flit's Session 1 covered, scoped to Brainjamin's narrower V1
-(no brand panel, no admin web target).
+**Open at session end (2026-04-30):** Sprint 1.3 code passed
+`flutter analyze` and `flutter test` (2/2), but the onboarding flow was
+NOT manually smoke-tested in Chrome before session close. The first
+action in the next session must be:
+
+1. Open Cursor in `C:\flutter_projects\brainjamin`, run
+   `flutter run -d chrome`
+2. Walk the full flow — Welcome → Age Gate (try both <13 block and ≥13
+   pass) → Sign-in screen (each placeholder button shows snackbar; the
+   "Continue without signing in" tonal button advances) → MainShellPlaceholder
+3. Reload the page and confirm second launch skips onboarding (lands
+   directly on MainShellPlaceholder)
+4. If anything is broken, treat the next prompt as a 1.3 fix sprint.
+   If everything works, move to Sprint 1.4.
+
+Sprint 1 sub-sprint status:
+
+| Sub-sprint | Scope | Status |
+|---|---|---|
+| 1.1 | Bootstrap | ✅ done (commit `89496a7`) |
+| 1.2 | Theme + i18n + ServerTimeService | ✅ done — committed |
+| 1.3 | Anonymous auth + onboarding (UI only) | ✅ code-complete + tests green; **manual smoke test pending** |
+| 1.4 | 5-tab main shell + empty states | next, gated by 1.3 smoke test |
+| 1.5 | Apple + Google + Email providers + `linkWithCredential` | pending (also depends on iOS Developer Console manual setup) |
+
+Mascot artwork is NOT a Sprint 1 dependency — placeholder
+`CircleAvatar(brandOrange) + Icons.psychology` ships in 1.3 (already)
+and 1.4. Real mascot integrates in Sprint 5 (Profile + achievements) or
+via a patch sprint when the illustrator deliverable arrives. TODO
+markers are present in `welcome_screen.dart`, `age_gate_screen.dart`
+(blocked screen), and `sign_in_screen.dart` to flag the placeholders.
 
 ---
 
 ## 🔴 IMMEDIATE (Launch Blocker — all must be done before App Store submission)
 
 ### Identity & accounts
-- **Domain registration** — `brainjamin.com` (or `.net` if `.com` taken) on
+- ~~**Domain registration** — `brainjamin.com` (or `.net` if `.com` taken) on
   GoDaddy, 3-year, WHOIS privacy ON, Tam Alan Adi Korumasi OFF, Kurumsal
-  E-posta Pro Light OFF. **Mert handles this directly, not via Cursor.**
+  E-posta Pro Light OFF. **Mert handles this directly, not via Cursor.**~~
+  ✅ Done 2026-04-30.
 - **Apple Developer enrollment under Stratech FZCO** — already enrolled per
   Flit; verify Brainjamin is set up as a separate App Store Connect record,
   not a Flit variant.
 - **Google Play Console** — Brainjamin listing under Stratech FZCO. Same
   verification.
-- **Firebase project creation** — `brainjamin-prod` (or similar). Enable:
+- ~~**Firebase project creation** — `brainjamin-prod` (or similar). Enable:
   Auth (Anonymous + Apple + Google + Email/password), Firestore, Cloud
   Functions, Hosting (single target initially: `brainjamin-prod-user`),
-  Storage, Realtime Database (for `.info/serverTimeOffset`), Crashlytics.
+  Storage, Realtime Database (for `.info/serverTimeOffset`), Crashlytics.~~
+  ✅ Done 2026-04-30. Project ID: `brainjamin-prod-app` (`brainjamin-prod`
+  was unavailable). Region: `us-central1`. Plan: Blaze with $25/month
+  budget alert. Services enabled: Auth (Anonymous only — Apple + Google
+  + Email defer to Sprint 1.5), Firestore, Storage, RTDB, Hosting (default
+  site only), Crashlytics. Cloud Functions ready (Blaze) but `firebase
+  init functions` runs in a later sub-sprint.
 
 ### Apple-mandatory pre-launch
 - **App Check activation deferred** until iOS Apple Developer enrollment
@@ -279,18 +312,56 @@ Listed here so they don't get lost.
 Following the same shape Flit used (Session 1-6 architectural sessions
 mapped to Cursor sprint sequence), Brainjamin's sprints:
 
-1. **Sprint 1 — Bootstrap + Auth + Main shell**
-   - `flutter create brainjamin`
-   - Firebase initialize, multi-platform setup (iOS, Android, Web)
-   - Anonymous auth on app start
-   - Apple + Google + Email auth via `linkWithCredential`
-   - Onboarding flow (welcome → age gate → optional sign-in → main shell)
-   - 5-tab main shell (Home/Tournaments, Self-Test, Arena, Duel, Profile)
-   - Empty state mascot artwork
-   - Internationalization (`intl` + `app_en.arb`)
-   - Theme + color tokens (#F97316)
-   - `ServerTimeService` Dart class
-   - Crashlytics wiring
+1. **Sprint 1 — Bootstrap + Auth + Main shell** (split into 5 sub-sprints)
+
+   1.1 **Bootstrap** (next)
+       - `flutter create brainjamin --org com.stratech --platforms=ios,android,web`
+       - Pubspec dependencies: firebase_core, firebase_auth, cloud_firestore,
+         firebase_storage, firebase_database, firebase_crashlytics,
+         firebase_analytics, intl
+       - `flutterfire configure --project=brainjamin-prod-app` →
+         registers iOS, Android, Web apps in Firebase Console
+       - `lib/core/bootstrap/app_bootstrap.dart` (Firebase.initializeApp +
+         Crashlytics handlers)
+       - Smoke-test screen (#F97316 Material 3 theme, "Brainjamin /
+         Firebase ready" centered)
+       - Quality gate: `flutter analyze` → No issues found
+
+   1.2 **Theme + i18n + ServerTimeService**
+       - `lib/core/constants/app_colors.dart` (#F97316 only; #FF9F04 banned
+         per PR-1)
+       - Polished ThemeData (Material 3, brand color, typography scale)
+       - `intl` + `flutter_localizations` + `app_en.arb` skeleton with 3-5
+         starter keys
+       - `lib/core/services/server_time_service.dart` — syncs
+         `.info/serverTimeOffset` once at app start, exposes `.now()` (PR-10)
+
+   1.3 **Anonymous auth + onboarding flow (UI only)**
+       - Anonymous sign-in on app start (auto, silent)
+       - Welcome screen
+       - Age gate screen — neutral birth year + month picker, blocks <13
+         (PR-11)
+       - Sign-in screen — UI placeholders for Apple/Google/Email buttons
+         (handlers wired in Sprint 1.5; for now they show a "coming soon"
+         snackbar)
+
+   1.4 **5-tab main shell**
+       - Bottom nav: Home/Tournaments, Self-Test, Arena, Duel, Profile
+       - Empty-state placeholder per tab (no real content; mascot
+         placeholders are plain icons until illustrator deliverable lands)
+       - Single `AppRouter` (no brand/admin split per CONTEXT § Architecture)
+
+   1.5 **Apple + Google + Email providers + linkWithCredential**
+       - iOS Developer Console: create App ID `com.stratech.brainjamin`,
+         Service ID, Sign in with Apple key (manual, Mert)
+       - Firebase Console: enable Apple, Google, Email/password providers
+       - Google: register SHA-256 fingerprint, wire OAuth client
+       - `linkWithCredential` flow for anonymous → permanent
+       - "Account already exists" branch handled with explicit user prompt
+         (anonymous progress is lost on existing-account sign-in per
+         CONTEXT § Auth)
+       - NO email verification mail (per CONTEXT)
+       - NO phone verification anywhere (per PR-5)
 
 2. **Sprint 2 — Daily Question + Self-Test**
    - `selectDailyQuestion` CF
@@ -380,6 +451,78 @@ mapped to Cursor sprint sequence), Brainjamin's sprints:
 
 ## ✅ RECENTLY DONE
 
+### 2026-04-30 (afternoon) — Sprint 1.1, 1.2, 1.3 implementation
+
+Three sub-sprints implemented in one Cursor session, all passing
+`flutter analyze` and `flutter test`. Sprint 1.3 code-complete but
+pending manual smoke test in Chrome (carries over to next session — see
+NEXT UP).
+
+**Sprint 1.1 — Bootstrap** (commit `89496a7`)
+- `flutter create brainjamin --org com.stratech --platforms=ios,android,web`
+- 8 pubspec deps: firebase_core 3.15.2, firebase_auth 5.7.0, cloud_firestore 5.6.12, firebase_storage 12.4.10, firebase_database 11.3.10, firebase_crashlytics 4.3.10, firebase_analytics 11.6.0, intl
+- `flutterfire configure --project=brainjamin-prod-app --platforms=ios,android,web` — 3 Firebase apps registered (Android `1:1047648611720:android:...`, iOS `1:1047648611720:ios:...`, Web `1:1047648611720:web:...`); `lib/firebase_options.dart` generated
+- `lib/core/bootstrap/app_bootstrap.dart` — Firebase.initializeApp + Crashlytics handlers (FlutterError.onError + PlatformDispatcher.instance.onError)
+- `lib/main.dart` — `BrainjaminApp` + `_SmokeTestScreen` ("Brainjamin / Firebase ready" hardcoded)
+- Smoke test verified in Chrome: bold title + subtitle visible, console clean ✅
+- Note: `flutterfire` not on PATH on Mert's MINGW64 by default; resolved via `~/.bashrc` alias `alias flutterfire='flutterfire.bat'`. Cursor uses `dart pub global run flutterfire_cli:flutterfire ...` form which works regardless. Either pattern is fine.
+
+**Sprint 1.2 — Theme + i18n + ServerTimeService**
+- `lib/core/constants/app_colors.dart` — `BrainjaminColors` token set (brandOrange `0xFFF97316`, brandOrangeLight, brandOrangeDark, surface, surfaceVariant, onSurface, onSurfaceMuted, success, warning, error, info). PR-1 BANNED `0xFFFF9F04` warning comment at top.
+- `lib/core/theme/app_theme.dart` — `BrainjaminTheme.light` Material 3 with `ColorScheme.fromSeed` + token overrides for primary, surface, surfaceContainerHighest, onSurface, error.
+- `flutter_localizations` + `intl 0.19.0` (downgraded from `0.20.2` for `flutter_localizations` compatibility — Cursor's correct trivial pick)
+- `l10n.yaml` + `lib/l10n/app_en.arb` (3 keys initially: appTitle, smokeTestTitle, smokeTestSubtitle — last two superseded in 1.3)
+- `MaterialApp` wired with `localizationsDelegates`, `supportedLocales`, `onGenerateTitle`
+- `lib/core/services/server_time_service.dart` — PR-10 implementation. Reads `FirebaseDatabase.instance.ref('.info/serverTimeOffset')` with 5s timeout; defensive fallback to 0ms. `static .now()` exposed. `kDebugMode` log on initialize.
+- `app_bootstrap.dart` updated: `await ServerTimeService.initialize()` between Firebase init and Crashlytics handlers, in its own try/catch.
+- Smoke test in Chrome: console showed `[ServerTimeService] offset=0ms` ✅
+- `flutter_gen` synthetic-package deprecation warning surfaced (Flutter SDK notice, not actionable in V1; track for SDK upgrade in V2).
+
+**Sprint 1.3 — Anonymous auth + onboarding flow (UI only)**
+- `shared_preferences 2.5.3` added (only new dependency).
+- `lib/core/services/auth_service.dart` — `BrainjaminAuthService` with silent anonymous sign-in (`ensureSignedIn`, 10s timeout, defensive Crashlytics logging, no rethrow). Wired into bootstrap after ServerTimeService.
+- `lib/core/services/onboarding_state_service.dart` — SharedPreferences wrapper for `brainjamin.onboarding.completed` and `brainjamin.age_gate.passed` flags. Birth date is intentionally NOT stored (PR-11 privacy minimization, COPPA-aligned).
+- 4 onboarding screens + 1 routes file:
+  - `welcome_screen.dart` — mascot placeholder (CircleAvatar + Icons.psychology + TODO marker), title, body, "Let's go" CTA in mascot voice
+  - `age_gate_screen.dart` — neutral birth month + birth year dropdowns (NOT Yes/No per PR-11). Age computed via `ServerTimeService.now()`. Under-13 routes to private `_AgeBlockedScreen` with "Brainjamin is for ages 13 and up." (PR-11 exact text) + "Go back" button (no bypass).
+  - `sign_in_screen.dart` — 3 OutlinedButtons (Apple/Google/Email) showing localized snackbar ("Brainjamin is sharpening this — coming in the next update."). Bottom prominent `FilledButton.tonal` "Continue without signing in" per PR-4 anonymous-first.
+  - `onboarding_gate.dart` — top-level entry; reads `OnboardingStateService.isOnboardingCompleted()`, routes to MainShellPlaceholder or WelcomeScreen.
+  - `onboarding_routes.dart` — extracted to break a circular import (Cursor's good call — not in original spec, structurally correct).
+- `MainShellPlaceholder` — temporary widget showing "You're in." + "Brainjamin's stage is being built — Sprint 1.4 ships the real shell." TODO marker present for 1.4 deletion.
+- `lib/main.dart` — smoke screen replaced with `home: const OnboardingGate()`; named routes registered.
+- `app_en.arb` — 16 new keys (welcomeTitle/Body/Cta, ageGate*, signIn*, mainPlaceholder*); old smoke keys removed.
+- `test/widget_test.dart` — replaced single smoke test with two tests: "Welcome shows on first launch" (empty SharedPreferences) and "Skips welcome when completed" (mocked completed flag). Both pump OnboardingGate directly without bootstrapping Firebase (clean test isolation).
+- Quality gates: `flutter analyze` → No issues. `flutter test` → 2/2 passed. `git grep "FF9F04"` → only docs and PR-1 BANNED comment. `git grep "DateTime.now()"` in `lib/features/` → zero hits (only `server_time_service.dart` uses it, expected).
+
+**Git history note:** Sprint 1.2 and 1.3 commits both made at session end (Sprint 1.2 changes were uncommitted on disk when 1.3 began — Cursor's Step 1 discovery flagged this correctly per CB-8). After session-end commits, history is `89496a7 Sprint 1.1` → Sprint 1.2 → Sprint 1.3 → docs commit. Sprint 1.2's pre-1.3 intermediate state is not preserved as a separate snapshot, but that's acceptable given the sub-sprint discipline.
+
+**Toolchain footnote:** A second Firebase CLI account `info@stratechdynamic.net` was added (`firebase login:add`) and set as global default (`firebase login:use`). Brainjamin's Firebase project is owned by this account; Flit's continues under `info@mfbteknoloji.com`. **If returning to Flit work, run `firebase login:use info@mfbteknoloji.com`** before any deploy from that workspace, otherwise the wrong account is active.
+
+### 2026-04-30 (morning) — Sprint 1 prereqs closed + toolchain verified
+
+- **Domain registered:** `brainjamin.com` purchased on GoDaddy (3-year,
+  WHOIS privacy ON).
+- **Firebase project created:** `brainjamin-prod-app` (`brainjamin-prod`
+  taken), region `us-central1`, Blaze plan with $25/month budget alert.
+  Services enabled in this order: Auth (Anonymous), Firestore (production
+  rules), Storage (production rules, default bucket
+  `gs://brainjamin-prod-app.firebasestorage.app`), Realtime Database
+  (locked mode), Cloud Functions (Blaze-ready, no deploy yet), Hosting
+  (default site `brainjamin-prod-app.web.app`, no second site yet),
+  Crashlytics (passive, activates with Flutter plugin in Sprint 1.1).
+  Apple/Google/Email auth providers deferred to Sprint 1.5.
+  App Check deferred per Apple Developer enrollment (no change from Flit
+  posture).
+- **Toolchain verified on Mert's machine:** Flutter 3.29.3 (channel
+  stable, same as Flit), Dart 3.7.2, Firebase CLI 15.13.0, FlutterFire
+  CLI 1.3.2 (newly installed via `dart pub global activate`; PATH alias
+  added to `~/.bashrc` so MINGW64 finds the `.bat` wrapper). Firebase
+  identity already logged in as `info@mfbteknoloji.com`.
+- **Sprint 1 split decided:** 5 sub-sprints (1.1 Bootstrap, 1.2 Theme +
+  i18n + ServerTimeService, 1.3 Anonymous auth + onboarding, 1.4 5-tab
+  shell, 1.5 Apple + Google + Email providers). See NEXT UP and CURSOR
+  SPRINT SEQUENCE.
+
 ### 2026-04-29 — Architecture phase complete (16 decisions closed)
 
 A full architecture session in this conversation closed the following
@@ -429,134 +572,67 @@ BRAINJAMIN_RULES.md:
 
 ## 📁 CODEBASE SNAPSHOT
 
-**Repo not yet initialized.** This section will populate after Sprint 1
-(`flutter create brainjamin` + initial commit). Expected structure
-(adapted from Flit, B2B parts removed):
+**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 implementation
+shipped. Local git only — no GitHub remote yet (Sprint 1.5 territory).
+Branch: `main`. Current concrete tree (only files Brainjamin owns —
+Flutter-generated Android/iOS/web boilerplate omitted for clarity):
 
 ```
 lib/
   core/
     bootstrap/
-      app_bootstrap.dart
-    services/
-      server_time_service.dart       ← new in Brainjamin (PR-10)
-      llm_service_client.dart        ← thin client; logic is in CF
+      app_bootstrap.dart       ← Firebase init + ServerTime + AnonymousAuth + Crashlytics
     constants/
-      app_colors.dart                ← #F97316 only
-      categories.dart                ← 20-category list
+      app_colors.dart          ← #F97316 only (PR-1 banned hex flagged in comment)
+    services/
+      auth_service.dart        ← anonymous-first; real providers in 1.5
+      onboarding_state_service.dart  ← SharedPreferences flags only, no birth date
+      server_time_service.dart ← PR-10 .info/serverTimeOffset sync
+    theme/
+      app_theme.dart           ← Material 3, brand orange tokens
   features/
     onboarding/
-      welcome_screen.dart
-      age_gate_screen.dart           ← neutral birth year + month
-      sign_in_screen.dart
-    home/
-      home_tab.dart                  ← tournament cards
-    daily/
-      daily_question_screen.dart
-    self_test/
-      self_test_lobby.dart
-      self_test_session.dart
-      self_test_leaderboard.dart
-    arena/
-      create_arena_wizard/
-        step_1_basics.dart
-        step_2_details.dart
-        step_3_summary.dart
-      arena_lobby.dart
-      arena_session.dart
-      battle_spectator_screen.dart   ← Battle Arena spectator
-    duel/
-      duel_lobby.dart
-      duel_match_screen.dart
-      duel_results.dart
-    tournament/
-      classic/
-      live/
-        live_tournament_screen.dart  ← real-time listener
-        live_question_screen.dart
-        live_results_screen.dart
-    profile/
-      profile_tab.dart
-      anonymous_warning_card.dart
-      achievements_grid.dart
-      settings_screen.dart
-    admin/
-      quality_review_screen.dart     ← /admin/quality
-      analytics_dashboard.dart       ← /admin/dashboard
+      welcome_screen.dart      ← mascot placeholder; TODO(mascot)
+      age_gate_screen.dart     ← birth month + year dropdowns; under-13 block
+      sign_in_screen.dart      ← Apple/Google/Email placeholders + anonymous CTA
+      onboarding_gate.dart     ← entry router; SharedPreferences-driven
+      onboarding_routes.dart   ← named routes constants (avoids import cycle)
   l10n/
-    app_en.arb                       ← EN-only (V1)
+    app_en.arb                 ← 17 keys (appTitle + 16 onboarding)
+  firebase_options.dart        ← generated by FlutterFire CLI; do not edit
+  main.dart                    ← BrainjaminApp + theme + l10n delegates + home: OnboardingGate
+
+test/
+  widget_test.dart             ← 2 tests, OnboardingGate isolated
+
+l10n.yaml
+pubspec.yaml                   ← 9 direct deps + flutter_localizations (sdk)
+pubspec.lock                   ← committed
+firebase.json                  ← single hosting target (default site)
+BRAINJAMIN_CONTEXT.md          ← @-referenced by Cursor prompts
+BRAINJAMIN_RULES.md            ← @-referenced by Cursor prompts
+BRAINJAMIN_TODO.md             ← this file; updated at session end
+.gitignore
+analysis_options.yaml
+.metadata
+README.md                      ← Flutter default; rewrite in Sprint 6
+```
+
+Expected additions in Sprint 1.4 (5-tab shell):
+
+```
+lib/
+  features/
+    main_shell/
+      main_shell.dart          ← bottom nav + 5-tab routing
+      tabs/
+        home_tab.dart
+        self_test_tab.dart
+        arena_tab.dart
+        duel_tab.dart
+        profile_tab.dart
   router/
-    app_router.dart                  ← single router (no brand/admin split)
-  firebase_options.dart
-  main.dart                          ← single entry point
-
-functions/src/
-  index.ts
-  config.ts
-  authGuards.ts                      ← assertNotAnonymous etc., NO phone
-  shared/
-    aiProviders.ts                   ← LLMService fallback chain
-    aiModelsLoader.ts
-    sessionQuestions.ts
-    secrets.ts
-  embeddings/
-    openaiEmbeddings.ts
-    semanticDedup.ts
-  tournament/
-    generateTournamentContent.ts
-    makeTournamentVisible.ts
-    startLiveTournament.ts
-    runLiveTournament.ts             ← server loop, 540s timeout
-    sendLiveTournamentPush.ts
-    finalizeClassicTournament.ts
-    finalizeLiveTournament.ts        ← triggered post-Q20
-    liveTournamentWatchdog.ts
-  daily/
-    selectDailyQuestion.ts
-  arena/
-    generateArenaQuestions.ts
-  duel/
-    findOrCreateDuelMatch.ts
-  cleanup/
-    pruneStaleGames.ts
-  leaderboards/
-    rebuildLeaderboards.ts
-    resetWeeklyLeaderboard.ts
-  identity/
-    validateUsername.ts
-    onUserConverted.ts               ← auth trigger
-  achievements/
-    checkAchievements.ts
-  notifications/
-    sendDailyReminder.ts
-    sendStreakAtRiskReminder.ts
-    notifyDuelInvite.ts
-    notifyDuelComplete.ts
-    flushQueuedPushes.ts
-  account/
-    softDeleteAccount.ts
-    purgeDeletedAccounts.ts
-    exportUserData.ts
-  admin/
-    aggregateAdminMetrics.ts
-    submitReport.ts
-    wipeTestData.ts
-  seed/
-    seedQuestions.ts                 ← 4,000-question seed runner
-    seedLegalDocs.ts
-    setBrainjaminLogo.ts
-
-landing/
-  public/                            ← Brainjamin landing page assets
-  index.html
-  privacy.html
-  terms.html
-
-web/
-  favicon.png
-  icons/
-  index.html
-  manifest.json
+    app_router.dart            ← single AppRouter (no brand/admin split per CONTEXT)
 ```
 
 Files explicitly NOT carried over from Flit (do not port):
@@ -565,7 +641,7 @@ Files explicitly NOT carried over from Flit (do not port):
 - All `functions/src/brand*.ts`, `prediction*.ts`, `survey*.ts`,
   `phoneVerification*.ts`, `prize*.ts`, `discount*.ts`, `seedBrands.ts`
 - All hosting target configurations except `brainjamin-prod-user` and
-  `brainjamin-prod-landing`
+  `brainjamin-prod-landing` (latter not configured yet)
 
 ---
 
