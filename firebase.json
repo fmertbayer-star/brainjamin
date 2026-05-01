@@ -1,1 +1,40 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"brainjamin-prod-app","appId":"1:1047648611720:android:cbcf6e275652d3763ede3d","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"brainjamin-prod-app","configurations":{"android":"1:1047648611720:android:cbcf6e275652d3763ede3d","ios":"1:1047648611720:ios:e4c12f514bd8b5ca3ede3d","web":"1:1047648611720:web:20f977e0862604343ede3d"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "brainjamin-prod-app",
+          "appId": "1:1047648611720:android:cbcf6e275652d3763ede3d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "brainjamin-prod-app",
+          "configurations": {
+            "android": "1:1047648611720:android:cbcf6e275652d3763ede3d",
+            "ios": "1:1047648611720:ios:e4c12f514bd8b5ca3ede3d",
+            "web": "1:1047648611720:web:20f977e0862604343ede3d"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint",
+        "npm --prefix \"$RESOURCE_DIR\" run build"
+      ]
+    }
+  ]
+}

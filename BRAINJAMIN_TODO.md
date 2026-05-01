@@ -5,49 +5,58 @@ Last updated: 2026-05-01
 
 ## NEXT UP — Active Thread
 
-**Sprint 1 is fully closed** — Chrome smoke (tests 1–6), Android Gradle
-pins (1.7 + 1.7.1), and Samsung verification (tests 0, 7, 8) all green.
+**Sprint 2 unblocked on AI keys** — Gemini, OpenAI, and Anthropic API
+keys provisioned to Firebase Cloud Secret Manager (Mert-direct). Secret
+names will be `GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` —
+referenced exactly in upcoming Cursor prompts.
 
-**Next thread: Sprint 2 — Daily Question + Self-Test** (see roadmap §
-Sprint sequence).
+**Sprint 2.1.a — Cloud Functions scaffolding — IN PROGRESS, blocked on
+IAM grant.**
 
-Sprint 2 **cannot start** until prerequisite work lands:
+Landed this session:
+- `.firebaserc` at repo root (`default: brainjamin-prod-app`)
+- `firebase.json` — `functions` block merged, existing `flutter` block
+  preserved verbatim
+- `functions/` tree scaffolded: `package.json` (engines.node = 22),
+  `tsconfig.json`, `.eslintrc.js`, `.gitignore`, `src/index.ts`
+- `ping` callable in `src/index.ts` (gen2, us-central1, v2 imports
+  only)
+- Quality gate: `npm run build` 0 errors, `npm run lint` 0 errors
 
-1. **AI provider keys** — Gemini + OpenAI + Anthropic API keys
-   provisioned into **Firebase Cloud Secret Manager** (same posture as
-   Flit). Required before Cloud Functions can call LLMs for generation /
-   verification pipelines.
-2. **4,000 seed questions** — content-ops batch (IMMEDIATE § Pre-launch
-   content); runs in parallel with engineering but Sprint 2 needs at
-   least a **pilot pool** before full Daily Question behavior is
-   meaningful at scale.
+Pending (resume next session):
+1. Mert grants `roles/cloudbuild.builds.builder` to default Compute SA
+   `1047648611720-compute@developer.gserviceaccount.com` via
+   `gcloud projects add-iam-policy-binding` (or IAM Console fallback).
+   Out-of-Cursor ops task. Root cause: Google's 2024 default-revoke of
+   this role on fresh projects.
+2. Redeploy with `firebase deploy --only functions:ping --force`
+   (`--force` also configures the Artifact Registry cleanup policy
+   that warned on the first attempt).
+3. Verify `ping` callable response via `gcloud functions call`.
+4. Only after all three green does Sprint 2.1.a close.
 
-Until keys exist (minimum bar), Cursor implementation on Sprint 2 scope
-waits or stays limited to scaffolding without live LLM calls.
+Deviations logged (no rollback for now — pragmatic accept, revisit
+only if deploy retry fails):
+- Cursor scaffolded `functions/` manually instead of running
+  `firebase init functions` interactively. Build + lint pass;
+  packaging reached Cloud Build before IAM failure. If deploy retry
+  succeeds post-IAM grant, deviation is functionally equivalent and
+  considered closed.
+- `firebase-functions` was briefly bumped to v7 during deploy
+  debugging, then pinned back to ^6.6.0. CB-3 forward-debug
+  micro-violation; final state clean.
 
-Sprint 1 sub-sprint status (final):
+**Sprint 2.1.b — `LLMService`** queued after 2.1.a closes. Will
+reference Flit's
+`C:\flutter_projects\flit\functions\src\shared\` (`aiProviders.ts`,
+`aiModelsLoader.ts`, `secrets.ts`, `explanationUtils.ts`) per CB-11
+(reference, not copy).
 
-| Sub-sprint | Scope | Status |
-|---|---|---|
-| 1.1 | Bootstrap | ✅ done |
-| 1.2 | Theme + i18n + ServerTimeService | ✅ done |
-| 1.3 | Anonymous auth + onboarding (UI only) | ✅ done + smoke-tested |
-| 1.4 | go_router + 5-tab main shell + empty states | ✅ done + smoke-tested |
-| 1.4.5 | 4-tab MainShell + Home cards + standalone routes | ✅ done + smoke-tested |
-| 1.5 | Apple + Google + Email + `linkWithCredential` | ✅ done + smoke-tested (Chrome 1–6) |
-| 1.5.5 | Recovery + `Info.plist` + ARB verification | ✅ done |
-| 1.6 | Profile CTA + `userChanges()` + Crashlytics web guard + PR-15 | ✅ done + smoke-tested (Chrome 1–6) |
-| 1.7 | Android build fix (NDK + minSdk) | ✅ done + verified (Samsung) |
-| 1.7.1 | Kotlin Gradle plugin bump (Firebase Kotlin metadata) | ✅ done |
-| **Sprint 1 close** | **Samsung smoke + Tests 7–8** | **✅ done** |
+**Sprint 2.2 — generation + 3-layer verification + semantic dedup**
+queued after 2.1.b. Flit reference: `functions/src/embeddings/`.
 
-Mascot artwork is NOT a Sprint 1 dependency — placeholder
-`CircleAvatar(brandOrange) + Icons.psychology` ships across onboarding
-and the Profile CTA. Real mascot integrates in Sprint 5 (Profile +
-achievements) or via a patch sprint when the illustrator deliverable
-arrives. TODO markers are present in `welcome_screen.dart`,
-`age_gate_screen.dart` (blocked screen), `sign_in_screen.dart`, and
-`profile_tab.dart` (Sprint 1.6 CTA).
+**4,000 seed questions content-ops batch** paused per Mert ("yapı
+önce"). Resumes in parallel with Sprint 2.3 / 2.4 timing.
 
 ---
 
@@ -135,13 +144,16 @@ arrives. TODO markers are present in `welcome_screen.dart`,
   **Sprint 6/7** (build + submission sprint) unless Mert pulls it forward.
 
 ### Anthropic / OpenAI / Gemini provisioning
-- **OpenAI account + API key + initial credit** — for fallback chain (V1.12
+- ~~**OpenAI account + API key + initial credit** — for fallback chain (V1.12
   C.9) + embeddings (text-embedding-3-small). Add to Firebase Cloud Secret
-  Manager.
-- **Anthropic account + API key + initial credit** — for fallback chain.
-  Add to Firebase Cloud Secret Manager.
-- **Gemini API key** (Google Cloud) — primary generator. Add to Cloud Secret
-  Manager.
+  Manager.~~ ✅ Done 2026-05-01.
+- ~~**Anthropic account + API key + initial credit** — for fallback chain.
+  Add to Firebase Cloud Secret Manager.~~ ✅ Done 2026-05-01.
+- ~~**Gemini API key** (Google Cloud) — primary generator. Add to Cloud Secret
+  Manager.~~ ✅ Done 2026-05-01.
+
+(All three: provisioned to Firebase Cloud Secret Manager as
+`GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`.)
 - **`luxon` or `date-fns-tz` dependency** added to Cloud Functions
   package.json (PR-10 timezone math).
 - **`firebase_database` Flutter dependency** confirmed for
@@ -469,6 +481,22 @@ mapped to Cursor sprint sequence), Brainjamin's sprints:
 ---
 
 ## ✅ RECENTLY DONE
+
+### 2026-05-01 — Sprint 2 unblock + Sprint 2.1.a in progress
+
+- AI provider keys provisioned (Gemini + OpenAI + Anthropic) to
+  Firebase Cloud Secret Manager. Sprint 2 LLM-dependent work
+  unblocked.
+- Sprint 2.1.a started: `functions/` TypeScript scaffold + `ping`
+  callable (gen2, us-central1) + `.firebaserc` + `firebase.json`
+  merge. `npm run build` and `npm run lint` both 0 errors. Deploy
+  blocked on Cloud Build default Compute SA missing
+  `roles/cloudbuild.builds.builder` (2024 Google default-revoke;
+  fresh projects need manual grant). Pending IAM grant + deploy
+  retry + ping verify before 2.1.a closes. See NEXT UP.
+- Two Cursor process deviations logged (manual scaffold instead of
+  `firebase init`; firebase-functions v7 trial then back to ^6.6.0).
+  Pragmatic accept pending deploy retry.
 
 ### 2026-05-01 — Sprint 1.7 + 1.7.1 + Sprint 1 closed (Samsung)
 
@@ -888,13 +916,15 @@ BRAINJAMIN_RULES.md:
 
 ## 📁 CODEBASE SNAPSHOT
 
-**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 + 1.4 + 1.4.5 + 1.5 + 1.5.5 + **1.6** + **1.7** + **1.7.1**;
+**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 + 1.4 + 1.4.5 + 1.5 + 1.5.5 + **1.6** + **1.7** + **1.7.1** + Sprint 2.1.a (in progress);
 Sprint 1 closed. Implementation shipped in workspace. Confirm `origin` /
 GitHub presence before relying on backup — see push step after commit.
 Branch: `main`. Current concrete tree (only files Brainjamin owns —
 Flutter-generated Android/iOS/web boilerplate omitted for clarity):
 
 ```
+.firebaserc                                  ← new (2.1.a)
+firebase.json                                ← functions block merged (2.1.a)
 lib/
   core/
     bootstrap/
@@ -949,6 +979,14 @@ lib/
   router/
     app_router.dart                            ← 3 routes added + redirect tightened (1.4.5), sign-in redirect exception (1.6)
 
+functions/
+  package.json                               ← new (2.1.a, engines.node 22)
+  tsconfig.json                              ← new (2.1.a)
+  .eslintrc.js                               ← new (2.1.a)
+  .gitignore                                 ← new (2.1.a)
+  src/
+    index.ts                                 ← ping callable (2.1.a)
+
 ios/
   Runner/
     GoogleService-Info.plist                   ← downloaded from Console (1.5.5)
@@ -968,7 +1006,6 @@ test/
 l10n.yaml
 pubspec.yaml                                   ← 3 new deps (1.5)
 pubspec.lock
-firebase.json
 BRAINJAMIN_CONTEXT.md                          ← § provenance + Apple Sign In identifiers
 BRAINJAMIN_RULES.md
 BRAINJAMIN_TODO.md                             ← updated this session
