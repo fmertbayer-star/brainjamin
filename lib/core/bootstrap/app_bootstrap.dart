@@ -1,6 +1,8 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 import 'package:flutter/widgets.dart';
 
 import '../../firebase_options.dart';
@@ -48,12 +50,14 @@ Future<BootstrapResult> bootstrapBrainjamin() async {
   final ageGatePassed = await OnboardingStateService.isAgeGatePassed();
   final authCompleted = await OnboardingStateService.isAuthCompleted();
 
-  FlutterError.onError =
-      FirebaseCrashlytics.instance.recordFlutterFatalError;
-  PlatformDispatcher.instance.onError = (error, stack) {
-    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-    return true;
-  };
+  if (!kIsWeb) {
+    FlutterError.onError =
+        FirebaseCrashlytics.instance.recordFlutterFatalError;
+    PlatformDispatcher.instance.onError = (error, stack) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+      return true;
+    };
+  }
 
   return BootstrapResult(
     onboardingCompleted: onboardingCompleted,

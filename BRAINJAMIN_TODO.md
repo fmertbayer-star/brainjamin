@@ -1,42 +1,40 @@
 # BRAINJAMIN TODO
-Last updated: 2026-04-30
+Last updated: 2026-05-01
 
 ---
 
 ## NEXT UP — Active Thread
 
-**Sprints 1.4.5, 1.5, and 1.5.5 are code-complete on disk; Sprint 1
-closes after the deferred smoke-test pass.**
+**Sprint 1.5 + 1.5.5 + 1.6 are smoke-verified on Chrome. Sprint 1 close
+blocks on Samsung 7–8, which itself blocks on Android build fix.**
 
-Sprint **1.5 + 1.5.5**: auth providers + `linkWithCredential`, recovery,
-`Info.plist` URL scheme, ARB verification — merged to `main`-ready
-workspace. **Smoke test pending** (not run this session).
+**First task next session — Android build fix** (Sprint 1.7 patch, ~10
+min Cursor + verification):
 
-**First task next session — 8-scenario smoke plan** (closes Sprint 1 when
-all pass):
+`flutter run` on Samsung SM-G990E currently fails with two issues
+exposed when the smoke test attempted Test 7:
 
-**Chrome — Tests 1–6**
+1. **NDK version mismatch.** Project uses 26.3.11579264; Firebase
+   plugins all require 27.0.12077973. Fix: set
+   `ndkVersion = "27.0.12077973"` in `android/app/build.gradle.kts`
+   `android { ... }` block.
+2. **`minSdkVersion 21 < 23` (Firebase Auth requirement).** Fix: bump
+   `minSdk = 23` in the same file.
 
-1. **Google sign-in** — Anonymous → permanent link (no account conflict).
-2. **Email** — Sign-up flow for a **new** email (no prior Firebase account).
-3. **“Account already exists”** — Same email as an existing Brainjamin user:
-   validate **Cancel** (stay anonymous) and **Switch accounts** (destructive
-   path) both behave as designed.
-4. **Anonymous path** — “Continue without signing in” completes onboarding and
-   lands on MainShell.
-5. **Reload persistence** — After completing onboarding + auth choices,
-   hard reload; user should not replay onboarding incorrectly.
-6. **Apple on web** — Expect graceful failure / `authAppleUnavailableWeb`
-   messaging (Apple web not wired in Sprint 1.5).
+Both changes go in one Cursor prompt (read-only first per CB-3, then
+patch). Quality gate: `flutter analyze` + `flutter run` on Samsung to
+confirm clean build and app launch.
 
-**Samsung SM-G990E — Tests 7–8**
+**Then Tests 7–8 on Samsung SM-G990E:**
 
-7. **Google sign-in** — Native Android Google flow (`google_sign_in` +
-   Firebase).
-8. **Apple sign-in on Android** — Document actual behavior (`isAvailable` /
-   graceful messaging); acceptable outcomes include “not available” UX.
+7. **Google sign-in (native Android).** Anonymous → permanent link via
+   `google_sign_in` + Firebase. Verify UID preserved post-link.
+8. **Apple-on-Android.** Document actual behavior of
+   `SignInWithApple.isAvailable()` on Android — graceful fail or
+   "not available" UX; either is acceptable. This is observation, not
+   strict pass/fail.
 
-After **all eight** pass → **Sprint 1 fully closed**. **Sprint 2** (Daily
+After all eight pass → **Sprint 1 fully closed**. **Sprint 2** (Daily
 Question + Self-Test) becomes next.
 
 Sprint 1 sub-sprint status:
@@ -47,17 +45,20 @@ Sprint 1 sub-sprint status:
 | 1.2 | Theme + i18n + ServerTimeService | ✅ done |
 | 1.3 | Anonymous auth + onboarding (UI only) | ✅ done + smoke-tested |
 | 1.4 | go_router + 5-tab main shell + empty states | ✅ done + smoke-tested |
-| 1.4.5 | 4-tab MainShell + Home cards + standalone routes | ✅ done + smoke-tested (Chrome, 7 scenarios, prior session on 5-tab→4-tab refactor path) |
-| 1.5 | Apple + Google + Email + `linkWithCredential` | ✅ done code-complete; quality gates clean; **awaiting** 8-scenario smoke above |
+| 1.4.5 | 4-tab MainShell + Home cards + standalone routes | ✅ done + smoke-tested |
+| 1.5 | Apple + Google + Email + `linkWithCredential` | ✅ done + smoke-tested (Chrome 1–6) |
 | 1.5.5 | Recovery + `Info.plist` + ARB verification | ✅ done |
-| **Sprint 1 close** | **8-scenario smoke (Chrome 1–6 + Samsung 7–8)** | **first task — next session** |
+| 1.6 | Profile CTA + `userChanges()` + Crashlytics web guard + PR-15 | ✅ done + smoke-tested (Chrome 1–6) |
+| 1.7 | Android build fix (NDK + minSdk) | first task next session |
+| **Sprint 1 close** | **Samsung 7–8 (after 1.7)** | **second task next session** |
 
 Mascot artwork is NOT a Sprint 1 dependency — placeholder
-`CircleAvatar(brandOrange) + Icons.psychology` ships in 1.3 (already)
-and 1.4. Real mascot integrates in Sprint 5 (Profile + achievements) or
-via a patch sprint when the illustrator deliverable arrives. TODO
-markers are present in `welcome_screen.dart`, `age_gate_screen.dart`
-(blocked screen), and `sign_in_screen.dart` to flag the placeholders.
+`CircleAvatar(brandOrange) + Icons.psychology` ships across onboarding
+and the new Profile CTA. Real mascot integrates in Sprint 5 (Profile +
+achievements) or via a patch sprint when the illustrator deliverable
+arrives. TODO markers are present in `welcome_screen.dart`,
+`age_gate_screen.dart` (blocked screen), `sign_in_screen.dart`, and
+`profile_tab.dart` (new Sprint 1.6 CTA).
 
 ---
 
@@ -284,6 +285,12 @@ Lower-priority items that can ship after V1 launch:
   "Admin müdahalesi" labeling + audit log style. Brainjamin'de admin
   zaten cok minimal, V1'de bu pattern'a gerek yok. V2 kapsaminda admin
   panel buyutulurse bu pattern uygulanir.
+- **Sign-in screen RenderFlex overflow** — at narrow viewports
+  (DevTools-open desktop, mobile portrait), the four sign-in buttons
+  Column overflows by 90–110px on the right. Cosmetic, observed during
+  Sprint 1.6 smoke. Likely needs `Flexible`/`Expanded` or `mainAxisSize`
+  reconsideration. Defer to Sprint 5 (Profile + final polish) or
+  grouped with EN copywriter's onboarding polish pass.
 
 ---
 
@@ -473,6 +480,97 @@ mapped to Cursor sprint sequence), Brainjamin's sprints:
 ---
 
 ## ✅ RECENTLY DONE
+
+### 2026-05-01 — Sprint 1 Chrome smoke (6/8) + Sprint 1.6 patches
+
+Chrome smoke scenarios 1–6 PASS. Sprint 1 close now blocks only on
+Samsung 7–8 (next session, after Android build fix).
+
+**Sprint 1.6** — three runtime-only bugs surfaced during smoke; all
+patched in-session, all `flutter analyze` clean, all hot-restart smoke
+verified post-fix:
+
+1. **Profile sign-in CTA missing.** Sprint 1.5's `sign_in_screen.dart`
+   was reachable at the route level but had no in-app entry point for
+   anonymous users post-onboarding. Added `StreamBuilder` in
+   `profile_tab.dart` that swaps mascot CTA ("Lock it in.") for the
+   default empty state when the user is `null` or
+   `isAnonymous == true`, pushing the `onboarding-sign-in` route.
+   Tightened `app_router.dart` redirect to allow `/onboarding/sign-in`
+   even when `onboardingCompleted=true`. Three new ARB keys
+   (`profileSignInCta*`).
+
+2. **`authStateChanges()` not reactive on `linkWithCredential`.**
+   Firebase `authStateChanges()` only fires on sign-in/sign-out, not
+   on link operations that mutate the existing User. Profile CTA
+   persisted after successful anonymous→email/Google link until hot
+   restart. Swapped to `_auth.userChanges()` in the
+   `BrainjaminAuthService.authStateChanges` getter (kept the getter
+   NAME stable; updated dartdoc). All call sites now reactively
+   reflect provider additions and profile updates.
+
+3. **Crashlytics web init crash.** Sprint 1.1's bootstrap ported
+   Flit's pattern but dropped Flit's `!kIsWeb` guard. On Chrome,
+   `pluginConstants['isCrashlyticsCollectionEnabled']` resolved null
+   and asserted, breaking auth flows downstream. Added `kIsWeb` guards
+   in `app_bootstrap.dart` (around `FlutterError.onError` /
+   `PlatformDispatcher.instance.onError` Crashlytics handler block) and
+   in `auth_service.dart` `ensureSignedIn()` catch blocks (around
+   `recordError` calls). On web these become no-ops; native paths
+   unchanged.
+
+**Plus PR-15 (password min length).** Centralized hardcoded `8` from
+`email_sign_in_sheet.dart` into new
+`lib/core/constants/auth_constants.dart` as
+`BrainjaminAuthConstants.minPasswordLength`. RULES updated.
+
+**Plus PR-3 addendum.** Sprint 1.5 passed analyzer cleanly but crashed
+at runtime; from Sprint 1.6 onward, bootstrap-touching prompts must
+include a `flutter run -d chrome` startup verification step. RULES
+updated.
+
+Files created:
+- `lib/core/constants/auth_constants.dart`
+
+Files modified:
+- `lib/features/main_shell/tabs/profile_tab.dart` (StreamBuilder + CTA)
+- `lib/router/app_router.dart` (sign-in redirect exception)
+- `lib/core/services/auth_service.dart` (`userChanges()` swap, `kIsWeb`
+  guards on Crashlytics calls)
+- `lib/core/bootstrap/app_bootstrap.dart` (`kIsWeb` guard on
+  Crashlytics handler block, narrower `foundation.dart` show clause,
+  `dart:ui` import for `PlatformDispatcher`)
+- `lib/features/onboarding/email_sign_in_sheet.dart` (read constant
+  instead of literal)
+- `lib/l10n/app_en.arb` (3 new `profileSignInCta*` keys)
+
+Quality gates: `flutter analyze` → No issues found. Chrome startup
+clean (no Crashlytics assertion). Smoke tests 1–6 verified manually
+against Firebase Console UID preservation.
+
+**Chrome smoke results:**
+- Test 1 (Anonymous → Google link): PASS — UID preserved, provider
+  added, no orphan account
+- Test 2 (Anonymous → Email sign-up link): PASS — UID preserved
+- Test 3a (Account exists / Cancel): observed-pass (code path verified
+  via Cursor read-only; runtime not exercised — Mert's call to skip)
+- Test 3b (Account exists / Switch accounts): PASS — switched to
+  existing UID, anonymous abandoned (not deleted, expected per design)
+- Test 4 (Anonymous full-play access, PR-4): PASS — all tabs/cards
+  open without auth gate. Today's Question card no-op confirmed
+  acceptable (no separate route by design — Daily Q is inline on Home,
+  built in Sprint 2).
+- Test 5 (Reload persistence): PASS — direct entry to MainShell, anon
+  UID preserved
+- Test 6 (Apple-on-web graceful fail): PASS — toast "Apple sign-in on
+  the web isn't open quite yet — Google's ready, or try email?"
+  displayed; no crash; mascot voice intact
+
+**Outstanding from this session (carried to next):**
+- Samsung Tests 7–8 (need Android build fix first)
+- RenderFlex overflow in sign-in screen (cosmetic, narrow-viewport
+  only; logged in P2)
+- Android build fix: NDK 27.0.12077973 + minSdk 23 (now Sprint 1.7)
 
 ### 2026-04-30 (akşam) — Sprint 1.5.5 closed (auth recovery + verification)
 
@@ -777,8 +875,8 @@ BRAINJAMIN_RULES.md:
 
 ## 📁 CODEBASE SNAPSHOT
 
-**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 + 1.4 + **1.4.5 +
-1.5 + 1.5.5** implementation shipped in workspace. Confirm `origin` /
+**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 + 1.4 + 1.4.5 + 1.5 + 1.5.5 + **1.6**
+implementation shipped in workspace. Confirm `origin` /
 GitHub presence before relying on backup — see push step after commit.
 Branch: `main`. Current concrete tree (only files Brainjamin owns —
 Flutter-generated Android/iOS/web boilerplate omitted for clarity):
@@ -787,12 +885,13 @@ Flutter-generated Android/iOS/web boilerplate omitted for clarity):
 lib/
   core/
     bootstrap/
-      app_bootstrap.dart
+      app_bootstrap.dart                         ← kIsWeb guard (1.6)
     constants/
       app_colors.dart
+      auth_constants.dart                       ← new (1.6)
     services/
       auth_result.dart                         ← new (1.5)
-      auth_service.dart                        ← expanded (1.5)
+      auth_service.dart                        ← expanded (1.5), kIsWeb + userChanges (1.6)
       onboarding_flow_controller.dart          ← expanded (1.5)
       onboarding_flow_provider.dart
       onboarding_state_service.dart            ← expanded (1.5)
@@ -820,22 +919,22 @@ lib/
       tabs/
         home_tab.dart                          ← rebuilt as 5-card (1.4.5)
         leaderboard_tab.dart                   ← new (1.4.5)
-        profile_tab.dart
+        profile_tab.dart                       ← Sign-in CTA (1.6)
         tournaments_tab.dart                   ← new (1.4.5)
     onboarding/
       age_blocked_screen.dart
       age_gate_screen.dart
-      email_sign_in_sheet.dart                 ← new (1.5)
+      email_sign_in_sheet.dart                 ← new (1.5), reads auth_constants (1.6)
       sign_in_screen.dart                      ← real handlers (1.5)
       welcome_screen.dart
     self_test/
       self_test_screen.dart                    ← new (1.4.5)
   l10n/
-    app_en.arb                                 ← rebuilt (1.5)
+    app_en.arb                                 ← rebuilt (1.5), +3 profileSignInCta keys (1.6)
   firebase_options.dart                        ← regenerated (1.5.5)
   main.dart
   router/
-    app_router.dart                            ← 3 routes added + redirect tightened (1.4.5)
+    app_router.dart                            ← 3 routes added + redirect tightened (1.4.5), sign-in redirect exception (1.6)
 
 ios/
   Runner/

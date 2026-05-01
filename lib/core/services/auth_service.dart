@@ -26,7 +26,11 @@ final class BrainjaminAuthService {
 
   static bool get isAnonymous => currentUser?.isAnonymous ?? false;
 
-  static Stream<User?> get authStateChanges => _auth.authStateChanges();
+  /// Emits on sign-in, sign-out, and when the current user's token or profile
+  /// changes—including [User.linkWithCredential] and other provider updates.
+  /// Unlike [FirebaseAuth.authStateChanges], this is required so UI (e.g. Profile)
+  /// reactively reflects anonymous→permanent transitions without manual [User.reload].
+  static Stream<User?> get authStateChanges => _auth.userChanges();
 
   /// Ensures an anonymous session exists. Idempotent; failures are logged, not thrown.
   static Future<void> ensureSignedIn() async {
@@ -34,10 +38,14 @@ final class BrainjaminAuthService {
     try {
       await _auth.signInAnonymously().timeout(const Duration(seconds: 10));
     } on TimeoutException catch (e, stackTrace) {
-      await FirebaseCrashlytics.instance.recordError(e, stackTrace);
+      if (!kIsWeb) {
+        await FirebaseCrashlytics.instance.recordError(e, stackTrace);
+      }
       debugPrint('[BrainjaminAuthService] signInAnonymously timeout: $e');
     } on FirebaseAuthException catch (e, stackTrace) {
-      await FirebaseCrashlytics.instance.recordError(e, stackTrace);
+      if (!kIsWeb) {
+        await FirebaseCrashlytics.instance.recordError(e, stackTrace);
+      }
       debugPrint(
         '[BrainjaminAuthService] signInAnonymously failed: ${e.code} ${e.message}',
       );

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/auth_constants.dart';
 import '../../core/services/auth_result.dart';
 import '../../core/services/auth_service.dart';
 
@@ -177,7 +178,7 @@ class _EmailSignInBottomSheetState extends State<EmailSignInBottomSheet> {
                   if (s.isEmpty) {
                     return l10n.authFieldRequired;
                   }
-                  if (s.length < 8) {
+                  if (s.length < BrainjaminAuthConstants.minPasswordLength) {
                     return l10n.authErrorWeakPassword;
                   }
                   return null;

@@ -1,5 +1,5 @@
 # BRAINJAMIN — RULES
-Last updated: 2026-04-29
+Last updated: 2026-05-01
 
 ---
 
@@ -146,6 +146,18 @@ Every Cursor prompt that touches code must end with:
   (e.g. `use_build_context_synchronously`, `unawaited_futures`,
   `unused_local_variable` near logic) and flags them — even if PR-3
   doesn't strictly require fixing them.
+
+**Sprint 1.6 addendum (added 2026-05-01):** `flutter analyze` does not
+catch runtime initialization bugs. Sprint 1.5 passed analyzer cleanly
+but crashed on Chrome at startup (Crashlytics web `kIsWeb` guard
+missing). From Sprint 1.6 onward, every Cursor prompt that touches
+bootstrap, service initialization, platform-conditional code, or any
+code that runs on app start MUST also include a `flutter run -d chrome`
+startup verification step in its quality gate. Cursor reports whether
+the app reached the expected first screen without console-red errors.
+This is a smoke check, not a full E2E — Mert still runs the human
+smoke scenarios. Prompts that only touch leaf-level UI widgets or
+pure-Dart utilities do not need this addendum. Use judgment.
 
 ### PR-4: Anonymous Users — Full Play, No Public Surface
 Anonymous users CAN play everything: Daily, Self-Test, Arena (create +
@@ -296,6 +308,21 @@ The mascot does NOT appear in:
 If a Cursor prompt creates a new user-facing surface, Claude verifies
 whether it falls in the "mascot appears" or "mascot absent" category and
 explicitly notes which in the prompt.
+
+### PR-15: Password Minimum Length
+Email/password sign-up and sign-in require a minimum password length
+of **8 characters**. Stricter than Firebase's default 6, aligned with
+NIST 2024 password guidance.
+
+The constant lives in `lib/core/constants/auth_constants.dart` as
+`BrainjaminAuthConstants.minPasswordLength` and is read from there by
+all auth surfaces. Hardcoded literals are forbidden. Future auth entry
+points (Forgot Password reset flow, future Sign-In sheets, etc.) must
+read the same constant.
+
+Codified after Sprint 1.6 smoke testing exposed an undocumented
+hardcoded `8` in `email_sign_in_sheet.dart` — value was correct, but
+the lack of a central anchor risked future drift.
 
 ---
 

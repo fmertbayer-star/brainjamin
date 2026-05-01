@@ -35,6 +35,9 @@ final class AppRouter {
         }
 
         if (completed && loc.startsWith('/onboarding')) {
+          if (loc == '/onboarding/sign-in') {
+            return null;
+          }
           return '/';
         }
         return null;
