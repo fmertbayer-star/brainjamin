@@ -5,39 +5,27 @@ Last updated: 2026-05-01
 
 ## NEXT UP — Active Thread
 
-**Sprint 1.5 + 1.5.5 + 1.6 are smoke-verified on Chrome. Sprint 1 close
-blocks on Samsung 7–8, which itself blocks on Android build fix.**
+**Sprint 1 is fully closed** — Chrome smoke (tests 1–6), Android Gradle
+pins (1.7 + 1.7.1), and Samsung verification (tests 0, 7, 8) all green.
 
-**First task next session — Android build fix** (Sprint 1.7 patch, ~10
-min Cursor + verification):
+**Next thread: Sprint 2 — Daily Question + Self-Test** (see roadmap §
+Sprint sequence).
 
-`flutter run` on Samsung SM-G990E currently fails with two issues
-exposed when the smoke test attempted Test 7:
+Sprint 2 **cannot start** until prerequisite work lands:
 
-1. **NDK version mismatch.** Project uses 26.3.11579264; Firebase
-   plugins all require 27.0.12077973. Fix: set
-   `ndkVersion = "27.0.12077973"` in `android/app/build.gradle.kts`
-   `android { ... }` block.
-2. **`minSdkVersion 21 < 23` (Firebase Auth requirement).** Fix: bump
-   `minSdk = 23` in the same file.
+1. **AI provider keys** — Gemini + OpenAI + Anthropic API keys
+   provisioned into **Firebase Cloud Secret Manager** (same posture as
+   Flit). Required before Cloud Functions can call LLMs for generation /
+   verification pipelines.
+2. **4,000 seed questions** — content-ops batch (IMMEDIATE § Pre-launch
+   content); runs in parallel with engineering but Sprint 2 needs at
+   least a **pilot pool** before full Daily Question behavior is
+   meaningful at scale.
 
-Both changes go in one Cursor prompt (read-only first per CB-3, then
-patch). Quality gate: `flutter analyze` + `flutter run` on Samsung to
-confirm clean build and app launch.
+Until keys exist (minimum bar), Cursor implementation on Sprint 2 scope
+waits or stays limited to scaffolding without live LLM calls.
 
-**Then Tests 7–8 on Samsung SM-G990E:**
-
-7. **Google sign-in (native Android).** Anonymous → permanent link via
-   `google_sign_in` + Firebase. Verify UID preserved post-link.
-8. **Apple-on-Android.** Document actual behavior of
-   `SignInWithApple.isAvailable()` on Android — graceful fail or
-   "not available" UX; either is acceptable. This is observation, not
-   strict pass/fail.
-
-After all eight pass → **Sprint 1 fully closed**. **Sprint 2** (Daily
-Question + Self-Test) becomes next.
-
-Sprint 1 sub-sprint status:
+Sprint 1 sub-sprint status (final):
 
 | Sub-sprint | Scope | Status |
 |---|---|---|
@@ -49,16 +37,17 @@ Sprint 1 sub-sprint status:
 | 1.5 | Apple + Google + Email + `linkWithCredential` | ✅ done + smoke-tested (Chrome 1–6) |
 | 1.5.5 | Recovery + `Info.plist` + ARB verification | ✅ done |
 | 1.6 | Profile CTA + `userChanges()` + Crashlytics web guard + PR-15 | ✅ done + smoke-tested (Chrome 1–6) |
-| 1.7 | Android build fix (NDK + minSdk) | first task next session |
-| **Sprint 1 close** | **Samsung 7–8 (after 1.7)** | **second task next session** |
+| 1.7 | Android build fix (NDK + minSdk) | ✅ done + verified (Samsung) |
+| 1.7.1 | Kotlin Gradle plugin bump (Firebase Kotlin metadata) | ✅ done |
+| **Sprint 1 close** | **Samsung smoke + Tests 7–8** | **✅ done** |
 
 Mascot artwork is NOT a Sprint 1 dependency — placeholder
 `CircleAvatar(brandOrange) + Icons.psychology` ships across onboarding
-and the new Profile CTA. Real mascot integrates in Sprint 5 (Profile +
+and the Profile CTA. Real mascot integrates in Sprint 5 (Profile +
 achievements) or via a patch sprint when the illustrator deliverable
 arrives. TODO markers are present in `welcome_screen.dart`,
 `age_gate_screen.dart` (blocked screen), `sign_in_screen.dart`, and
-`profile_tab.dart` (new Sprint 1.6 CTA).
+`profile_tab.dart` (Sprint 1.6 CTA).
 
 ---
 
@@ -481,6 +470,31 @@ mapped to Cursor sprint sequence), Brainjamin's sprints:
 
 ## ✅ RECENTLY DONE
 
+### 2026-05-01 — Sprint 1.7 + 1.7.1 + Sprint 1 closed (Samsung)
+
+**Sprint 1.7** (`android/app/build.gradle.kts`): pinned `ndkVersion` to
+`27.0.12077973` and `minSdk` to `23` (Firebase plugins + Firebase Auth
+requirements). **Sprint 1.7.1** (`android/settings.gradle.kts`): bumped
+`org.jetbrains.kotlin.android` from `1.8.22` to `2.1.10` to match
+Firebase Kotlin 2.1.0 metadata (`:firebase_analytics:compileDebugKotlin`
+had failed on Kotlin 1.8.x).
+
+Quality gates: `flutter analyze` → no issues; `flutter build apk --debug`
+→ success.
+
+**Device tests (Samsung SM-G990E):**
+
+- **Test 0 (smoke):** `flutter run` → app launches cleanly, no red
+  console errors.
+- **Test 7:** Anonymous → Google sign-in via `linkWithCredential` →
+  **UID preserved** (PR-4 anonymous-to-permanent verified on Android).
+- **Test 8:** Apple-on-Android → graceful behavior confirmed (per NEXT UP,
+  “either is acceptable” criterion met).
+
+All Sprint 1 sub-sprints **1.1 through 1.7.1** and **Sprint 1 close** are
+green. **Sprint 2** is next when AI keys (minimum) and content
+prerequisites are aligned — see NEXT UP.
+
 ### 2026-05-01 — Sprint 1 Chrome smoke (6/8) + Sprint 1.6 patches
 
 Chrome smoke scenarios 1–6 PASS. Sprint 1 close now blocks only on
@@ -566,11 +580,10 @@ against Firebase Console UID preservation.
   the web isn't open quite yet — Google's ready, or try email?"
   displayed; no crash; mascot voice intact
 
-**Outstanding from this session (carried to next):**
-- Samsung Tests 7–8 (need Android build fix first)
-- RenderFlex overflow in sign-in screen (cosmetic, narrow-viewport
-  only; logged in P2)
-- Android build fix: NDK 27.0.12077973 + minSdk 23 (now Sprint 1.7)
+**Follow-up (same day):** Sprint 1.7 + 1.7.1 Gradle patches and Samsung
+Tests 7–8 completed — see **2026-05-01 — Sprint 1.7 + 1.7.1 + Sprint 1
+closed** above. RenderFlex overflow on narrow sign-in layout remains logged
+in P2.
 
 ### 2026-04-30 (akşam) — Sprint 1.5.5 closed (auth recovery + verification)
 
@@ -875,8 +888,8 @@ BRAINJAMIN_RULES.md:
 
 ## 📁 CODEBASE SNAPSHOT
 
-**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 + 1.4 + 1.4.5 + 1.5 + 1.5.5 + **1.6**
-implementation shipped in workspace. Confirm `origin` /
+**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 + 1.4 + 1.4.5 + 1.5 + 1.5.5 + **1.6** + **1.7** + **1.7.1**;
+Sprint 1 closed. Implementation shipped in workspace. Confirm `origin` /
 GitHub presence before relying on backup — see push step after commit.
 Branch: `main`. Current concrete tree (only files Brainjamin owns —
 Flutter-generated Android/iOS/web boilerplate omitted for clarity):
@@ -945,7 +958,9 @@ ios/
 
 android/
   app/
+    build.gradle.kts                           ← NDK + minSdk pin (1.7)
     google-services.json                       ← oauth_client populated (1.5.5)
+  settings.gradle.kts                          ← Kotlin plugin 2.1.10 (1.7.1)
 
 test/
   widget_test.dart                             ← TODO(sprint-7) added (1.5)

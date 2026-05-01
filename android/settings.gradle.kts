@@ -23,7 +23,7 @@ plugins {
     id("com.google.gms.google-services") version("4.3.15") apply false
     id("com.google.firebase.crashlytics") version("2.8.1") apply false
     // END: FlutterFire Configuration
-    id("org.jetbrains.kotlin.android") version "1.8.22" apply false
+    id("org.jetbrains.kotlin.android") version "2.1.10" apply false // Bumped from 1.8.22 to match Firebase Kotlin 2.1.0 metadata (Brainjamin TODO 2026-05-01)
 }
 
 include(":app")

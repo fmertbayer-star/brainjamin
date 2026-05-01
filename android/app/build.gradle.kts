@@ -12,7 +12,7 @@ plugins {
 android {
     namespace = "com.stratech.brainjamin"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973" // Override flutter.ndkVersion — Firebase plugins require 27.0.12077973 (Brainjamin TODO 2026-05-01)
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -28,7 +28,7 @@ android {
         applicationId = "com.stratech.brainjamin"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 23 // Override flutter.minSdkVersion — Firebase Auth requires API 23+ (Brainjamin TODO 2026-05-01)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
