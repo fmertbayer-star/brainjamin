@@ -5,46 +5,47 @@ Last updated: 2026-05-02
 
 ## NEXT UP — Active Thread
 
-**Sprint 2 unblocked on AI keys** — Gemini, OpenAI, and Anthropic API
-keys provisioned to Firebase Cloud Secret Manager (Mert-direct). Secret
-names will be `GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` —
-referenced exactly in upcoming Cursor prompts.
+**Sprint 2.1.b kapandı.** LLMService iskeleti gönderildi:
+`functions/src/shared/` altında `secrets.ts`, `aiModelsLoader.ts`,
+`aiProviders.ts`, `verifierProvider.ts`. Üç npm paketi kuruldu:
+`@google/generative-ai`, `openai`, `@anthropic-ai/sdk`. ESLint yapılandırması
+güncellendi — `require-jsdoc` / `valid-jsdoc` TS-only proje için kapatıldı.
 
-**Sprint 2.1.a — Cloud Functions scaffolding — closed 2026-05-02**
-(`ping` gen2 deployed, state ACTIVE — see RECENTLY DONE).
+**Sprint 2.2.a kapandı.** Beş yeni yardımcı modül
+`functions/src/shared/` altında: `categories.ts`, `difficulty.ts`,
+`questionSchema.ts`, `moderation.ts`, `embeddings.ts`. V1 için 20 kategori
+tanımlandı — **astrology dahil, religion çıkarıldı** (Mert kararı).
 
-**First task next session — Sprint 2.1.b — `LLMService` scaffolding**
-(TypeScript under `functions/src/shared/`, aligned with Brainjamin
-architecture — CB-11).
+**PR-13 sadeleştirildi:** üç katman yerine iki katman mantığı (generator +
+moderation + correctness verifier + embedding dedup; dil doğrulayıcı yok).
+**PR-8 DEPRECATED:** soru şemasında `explanation` alanı yok.
 
-Flit structural reference (reference, not copy):
-`C:\flutter_projects\flit\functions\src\shared\` — `aiProviders.ts`,
-`aiModelsLoader.ts`, `secrets.ts`, `explanationUtils.ts`.
+**BLOKER:** `firestore.rules` dosyası repoda yok — Sprint 1 boşluğu. Sprint
+2.2.a STEP 6–7 (`questions_public` + `ai_config` kural blokları) **uygulanamadı**;
+metinler Cursor promptunda hazır, dosya olmadığı için repoya yazılmadı.
 
-**Discovery is complete** (read-only report, 2026-05-02). The next
-Cursor prompt is **implementation**, not another discovery pass.
+**Sonraki seansın ilk işi:** Firebase Console → Firestore → Rules: mevcut
+kuralları kontrol et (default deny mi, test mode mu). Buna göre
+`firestore.rules` dosyasını sıfırdan oluştur; ardından `questions_public` ve
+`ai_config` `match` blokları eklenecek.
 
-**Wiring requirement (from discovery):** Flit's `secrets.ts` uses
-`defineSecret` (`firebase-functions/params`), while `aiProviders.ts`
-reads keys from `process.env`. Brainjamin must attach gen2 **secrets**
-on deployable callables so **`process.env`** is populated for the LLM
-SDKs at runtime — unify those patterns in 2.1.b.
+**Bundan sonra:** Sprint 2.2.b — `generateQuestions` callable + 5–10 soruluk
+pilot (uçtan uca pipeline).
 
-**SMTP `defineSecret` entries from Flit's `secrets.ts` are NOT ported**
-— Brainjamin V1 has no outbound product-email surface.
+**4,000 seed questions** content-ops batch **hâlâ duraklatılmış** (“yapı
+önce”).
 
-Non-blocking note: `firebase-functions` remains pinned to **^6.6.0**;
-v7 upgrade deferred (breaking changes — separate future task).
-
-**Sprint 2.2 — generation + 3-layer verification + semantic dedup**
-queued after 2.1.b. Flit reference: `functions/src/embeddings/`.
-
-**4,000 seed questions content-ops batch** paused per Mert ("yapı
-önce"). Resumes in parallel with Sprint 2.3 / 2.4 timing.
+Non-blocking: `firebase-functions` **^6.6.0** pinli; v7 ayrı iş. Gen2
+callable’lara `secrets:` bağlama, 2.2.b ve sonrası deployable fonksiyonlarda
+netleşecek.
 
 ---
 
 ## 🔴 IMMEDIATE (Launch Blocker — all must be done before App Store submission)
+
+### Firestore — repo rules gap
+- **Restore `firestore.rules` at repo root** — Sprint 1 gap discovered
+  2026-05-02. Required before Sprint 2.2.b.
 
 ### Identity & accounts
 - ~~**Domain registration** — `brainjamin.com` (or `.net` if `.com` taken) on
@@ -202,6 +203,10 @@ patch — not closed in 2026-04-29 architecture session)
   without misleading. Pre-submission task.
 
 ### Pre-launch ops
+- **Add `questions_public` + `ai_config` rule blocks to `firestore.rules`**
+  — after the rules file exists at repo root; blocks already drafted in the
+  Sprint 2.2.a Cursor prompt (signed-in read for `questions_public`;
+  server-only patterns).
 - **Domain DNS configuration** — once GoDaddy purchase completes, point
   apex `brainjamin.com` to Firebase Hosting landing target. SSL
   provisioning via Firebase. Subdomain `app.brainjamin.com` if user app
@@ -230,6 +235,14 @@ patch — not closed in 2026-04-29 architecture session)
 
 Lower-priority items that can ship after V1 launch:
 
+- **Sprint 2.2.b — `generateQuestions` callable wiring + pilot run**
+  (5–10 questions end-to-end through the pipeline).
+- **Flutter-side category mirror** — `lib/core/constants/categories.dart`
+  matching `functions/src/shared/categories.ts` (needed for Sprint 2.2.b or
+  later UI work).
+- **Astrology category prompt guidance** — generator + verifier prompts must
+  clarify “astrological tradition, not scientific claims” to avoid verifier
+  reject loops.
 - **Master spec doc** — single canonical spec for Brainjamin. Lower
   priority since CONTEXT.md serves the same purpose for the architecture
   team of one (Mert + Claude). Build only if a third stakeholder enters.
@@ -466,7 +479,7 @@ mapped to Cursor sprint sequence), Brainjamin's sprints:
 
 ## ✅ RECENTLY DONE
 
-### 2026-05-02 — Sprint 2.1.a — Cloud Functions scaffolding closed
+### 2026-05-02 — Cloud Functions + LLM shared layer + question utilities + docs
 
 - **IAM (project `brainjamin-prod-app`):** granted
   `roles/cloudbuild.builds.builder` to default Compute service account
@@ -496,8 +509,46 @@ mapped to Cursor sprint sequence), Brainjamin's sprints:
 
 - **Cursor discovery (no code change):** read-only pass on Flit shared
   LLM modules (`aiProviders.ts`, `aiModelsLoader.ts`, `secrets.ts`,
-  `explanationUtils.ts`) — informs Sprint 2.1.b; key finding:
-  `defineSecret` vs `process.env` wiring documented in NEXT UP.
+  `explanationUtils.ts`) — informed Sprint 2.1.b; `defineSecret` vs
+  `process.env` wiring then implemented in 2.1.b.
+
+- Created `BRAINJAMIN_SESSION_FLOW.md` at repo root with SESSION START +
+  SESSION END prompts (file content per Mert spec; no other docs touched).
+- PR-8 marked DEPRECATED in `BRAINJAMIN_RULES.md` (no explanation field in
+  V1 question schema).
+- PR-13 simplified from 3-layer to 2-layer in `BRAINJAMIN_RULES.md`
+  (generator + moderation + correctness verifier + embedding dedup;
+  language verifier deprecated; rationale: V1 EN-only, generator output
+  already adequate at Gemini Flash quality).
+- **Sprint 2.1.b — LLMService scaffolding** shipped under
+  `functions/src/shared/`: `secrets.ts` (3 AI `defineSecret` +
+  `AI_SECRETS` array), `aiModelsLoader.ts` (5-min cached Firestore
+  `ai_config/models` with fallbacks `gemini-2.5-flash` / `gpt-4o-mini` /
+  `claude-haiku-4-5-20251001`), `aiProviders.ts` (`DEFAULT_ORDER`
+  gemini→openai→anthropic per PR-13,
+  `GenProvider="gemini"|"openai"|"anthropic"`, `generateWithProviders`
+  failover orchestrator), `verifierProvider.ts` (deterministic rotation
+  gemini→openai→anthropic→gemini).
+- npm dependencies added to `functions/`: `@google/generative-ai` ^0.24.1,
+  `openai` ^5.23.2, `@anthropic-ai/sdk` ^0.82.0.
+- ESLint config patched: `require-jsdoc` + `valid-jsdoc` disabled in
+  `functions/.eslintrc.js` root + `overrides[0].rules` (rationale: TS-only
+  project; type system documents signatures).
+- **Sprint 2.2.a — utility modules** shipped under `functions/src/shared/`:
+  `categories.ts` (20 V1 categories with type guard; astrology added,
+  religion removed per Mert decision 2026-05-02), `difficulty.ts` (1–5
+  scale with labels), `questionSchema.ts` (`GeneratedQuestion` +
+  `PersistedQuestion` interfaces, structural type guard), `moderation.ts`
+  (OpenAI `omni-moderation-latest` wrapper, throw-on-error policy),
+  `embeddings.ts` (`text-embedding-3-small`, 1536 dims, cosine similarity,
+  `DEDUP_THRESHOLD` 0.92).
+- **Decision:** Astrology category requires special prompt handling —
+  generator + verifier prompts will clarify “astrological tradition”
+  framing to avoid verifier reject loops (logged as P2 task for Sprint
+  2.2.b).
+- **Discovered:** `firestore.rules` missing from repo root — Sprint 1 gap.
+  Sprint 2.2.a STEP 6–7 (`questions_public` + `ai_config` rule blocks)
+  drafted but **NOT** applied. Logged as IMMEDIATE blocker for Sprint 2.2.b.
 
 ### 2026-05-01 — Sprint 2 unblock + Sprint 2.1.a in progress
 
@@ -933,112 +984,96 @@ BRAINJAMIN_RULES.md:
 
 ## 📁 CODEBASE SNAPSHOT
 
-**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 + 1.4 + 1.4.5 + 1.5 + 1.5.5 + **1.6** + **1.7** + **1.7.1** + Sprint 2.1.a (closed 2026-05-02);
-Sprint 1 closed. Implementation shipped in workspace. Confirm `origin` /
-GitHub presence before relying on backup — see push step after commit.
-Branch: `main`. Current concrete tree (only files Brainjamin owns —
-Flutter-generated Android/iOS/web boilerplate omitted for clarity):
+**Regenerated 2026-05-02.** Branch `main`. Sprint 1 closed; Sprint 2.1.a +
+2.1.b + 2.2.a shared utilities on disk. Confirm `origin` / GitHub before
+relying on remote backup.
+
+### Cloud Functions
+
+Source: `functions/src/index.ts`. Exports (alphabetical, comma-separated):
+`ping`.
+
+Export count **1** — below 80 (expected during Sprint 2 ramp-up; not an
+error).
+
+### Screen inventory
+
+Glob: `lib/features/**/*_screen.dart`. Exception path
+`lib/features/tournament/live_question_screen_v2.dart`: *(not present)*.
+
+- **arena/** (1): arena
+- **duel/** (1): duel
+- **onboarding/** (4): age_blocked, age_gate, sign_in, welcome
+- **self_test/** (1): self_test
+
+### Firestore collections
+
+**From `firestore.rules`:** *(firestore.rules missing from repo root —
+Sprint 1 gap, see IMMEDIATE)* — no top-level `match` lines extracted.
+
+**From `functions/src` (`collection("…")` at chain root):** `ai_config`
+(`aiModelsLoader.ts`).
+
+**Union** (alphabetical, deduplicated): `ai_config` **[code-only]** (no
+rules file; admin SDK / server paths only).
+
+### Routes
+
+`lib/core/constants/app_routes.dart`: *(none — not present).*  
+Router: `lib/router/app_router.dart` (`GoRouter`).
+
+| Path | Route name | Screen / widget |
+|------|------------|-----------------|
+| `/` | `main` | `MainShell` |
+| `/self-test` | `self-test` | `SelfTestScreen` |
+| `/arena` | `arena` | `ArenaScreen` |
+| `/duel` | `duel` | `DuelScreen` |
+| `/onboarding/welcome` | `onboarding-welcome` | `WelcomeScreen` |
+| `/onboarding/age-gate` | `onboarding-age-gate` | `AgeGateScreen` |
+| `/onboarding/age-blocked` | `onboarding-age-blocked` | `AgeBlockedScreen` |
+| `/onboarding/sign-in` | `onboarding-sign-in` | `SignInScreen` |
+
+Redirect: incomplete onboarding → `/onboarding/welcome`; completed user on
+most `/onboarding/*` → `/`, except `/onboarding/sign-in` allowed when
+completed.
+
+### Hosting targets
+
+`firebase.json` has **no** `hosting` block — *(none)*.
+
+`.firebaserc`: `projects.default` = `brainjamin-prod-app` (no named
+hosting targets in file).
+
+| target | site | public |
+|--------|------|--------|
+| *(none)* | *(none)* | *(none)* |
+
+### Repo structure (depth 2 under `lib/`, `functions/src/`, `web/`)
 
 ```
-.firebaserc                                  ← new (2.1.a)
-firebase.json                                ← functions block merged (2.1.a)
 lib/
-  core/
-    bootstrap/
-      app_bootstrap.dart                         ← kIsWeb guard (1.6)
-    constants/
-      app_colors.dart
-      auth_constants.dart                       ← new (1.6)
-    services/
-      auth_result.dart                         ← new (1.5)
-      auth_service.dart                        ← expanded (1.5), kIsWeb + userChanges (1.6)
-      onboarding_flow_controller.dart          ← expanded (1.5)
-      onboarding_flow_provider.dart
-      onboarding_state_service.dart            ← expanded (1.5)
-      server_time_service.dart
-    theme/
-      app_theme.dart
-    utils/
-      auth_error_localizations.dart            ← new (1.5)
-    widgets/
-      mascot_empty_state.dart                  ← new (1.4.5)
-  features/
-    arena/
-      arena_screen.dart                        ← new (1.4.5)
-    duel/
-      duel_screen.dart                         ← new (1.4.5)
-    home/
-      widgets/
-        active_arenas_card.dart                ← new (1.4.5)
-        daily_question_card.dart               ← new (1.4.5)
-        next_live_countdown_card.dart          ← new (1.4.5)
-        quick_duel_card.dart                   ← new (1.4.5)
-        self_test_entry_card.dart              ← new (1.4.5)
-    main_shell/
-      main_shell.dart                          ← refactored to 4-tab (1.4.5)
-      tabs/
-        home_tab.dart                          ← rebuilt as 5-card (1.4.5)
-        leaderboard_tab.dart                   ← new (1.4.5)
-        profile_tab.dart                       ← Sign-in CTA (1.6)
-        tournaments_tab.dart                   ← new (1.4.5)
-    onboarding/
-      age_blocked_screen.dart
-      age_gate_screen.dart
-      email_sign_in_sheet.dart                 ← new (1.5), reads auth_constants (1.6)
-      sign_in_screen.dart                      ← real handlers (1.5)
-      welcome_screen.dart
-    self_test/
-      self_test_screen.dart                    ← new (1.4.5)
-  l10n/
-    app_en.arb                                 ← rebuilt (1.5), +3 profileSignInCta keys (1.6)
-  firebase_options.dart                        ← regenerated (1.5.5)
+  core/           bootstrap/, constants/, services/, theme/, utils/, widgets/
+  features/       arena/, duel/, home/, main_shell/, onboarding/, self_test/
+  l10n/           app_en.arb
+  router/         app_router.dart
+  firebase_options.dart
   main.dart
-  router/
-    app_router.dart                            ← 3 routes added + redirect tightened (1.4.5), sign-in redirect exception (1.6)
 
-functions/
-  package.json                               ← new (2.1.a, engines.node 22)
-  tsconfig.json                              ← new (2.1.a)
-  .eslintrc.js                               ← new (2.1.a)
-  .gitignore                                 ← new (2.1.a)
-  src/
-    index.ts                                 ← ping callable (2.1.a)
+functions/src/
+  index.ts
+  shared/         aiModelsLoader.ts, aiProviders.ts, categories.ts,
+                  difficulty.ts, embeddings.ts, moderation.ts,
+                  questionSchema.ts, secrets.ts, verifierProvider.ts
 
-ios/
-  Runner/
-    GoogleService-Info.plist                   ← downloaded from Console (1.5.5)
-    Info.plist                                 ← CFBundleURLTypes added (1.5.5)
-    Runner.entitlements                        ← new, Sign In with Apple (1.5)
-  Runner.xcodeproj/project.pbxproj             ← CODE_SIGN_ENTITLEMENTS wired (1.5)
-
-android/
-  app/
-    build.gradle.kts                           ← NDK + minSdk pin (1.7)
-    google-services.json                       ← oauth_client populated (1.5.5)
-  settings.gradle.kts                          ← Kotlin plugin 2.1.10 (1.7.1)
-
-test/
-  widget_test.dart                             ← TODO(sprint-7) added (1.5)
-
-l10n.yaml
-pubspec.yaml                                   ← 3 new deps (1.5)
-pubspec.lock
-BRAINJAMIN_CONTEXT.md                          ← § provenance + Apple Sign In identifiers
-BRAINJAMIN_RULES.md
-BRAINJAMIN_TODO.md                             ← updated this session
-.gitignore
-analysis_options.yaml
-.metadata
-README.md
+web/
+  index.html
+  manifest.json
+  icons/          *(empty)*
 ```
 
-Files explicitly NOT carried over from Flit (do not port):
-- `main_brand.dart`, `main_admin.dart`
-- All `lib/features/brand/*`
-- All `functions/src/brand*.ts`, `prediction*.ts`, `survey*.ts`,
-  `phoneVerification*.ts`, `prize*.ts`, `discount*.ts`, `seedBrands.ts`
-- All hosting target configurations except `brainjamin-prod-user` and
-  `brainjamin-prod-landing` (latter not configured yet)
+Files explicitly NOT carried over from Flit (do not port): unchanged intent —
+no `main_brand` / `main_admin`, no `lib/features/brand/*`, no Flit-only
+`functions` modules or extra hosting sites beyond future Brainjamin targets.
 
 ---
 
