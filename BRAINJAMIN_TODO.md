@@ -1,5 +1,5 @@
 # BRAINJAMIN TODO
-Last updated: 2026-05-01
+Last updated: 2026-05-02
 
 ---
 
@@ -10,47 +10,31 @@ keys provisioned to Firebase Cloud Secret Manager (Mert-direct). Secret
 names will be `GEMINI_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` —
 referenced exactly in upcoming Cursor prompts.
 
-**Sprint 2.1.a — Cloud Functions scaffolding — IN PROGRESS, blocked on
-IAM grant.**
+**Sprint 2.1.a — Cloud Functions scaffolding — closed 2026-05-02**
+(`ping` gen2 deployed, state ACTIVE — see RECENTLY DONE).
 
-Landed this session:
-- `.firebaserc` at repo root (`default: brainjamin-prod-app`)
-- `firebase.json` — `functions` block merged, existing `flutter` block
-  preserved verbatim
-- `functions/` tree scaffolded: `package.json` (engines.node = 22),
-  `tsconfig.json`, `.eslintrc.js`, `.gitignore`, `src/index.ts`
-- `ping` callable in `src/index.ts` (gen2, us-central1, v2 imports
-  only)
-- Quality gate: `npm run build` 0 errors, `npm run lint` 0 errors
+**First task next session — Sprint 2.1.b — `LLMService` scaffolding**
+(TypeScript under `functions/src/shared/`, aligned with Brainjamin
+architecture — CB-11).
 
-Pending (resume next session):
-1. Mert grants `roles/cloudbuild.builds.builder` to default Compute SA
-   `1047648611720-compute@developer.gserviceaccount.com` via
-   `gcloud projects add-iam-policy-binding` (or IAM Console fallback).
-   Out-of-Cursor ops task. Root cause: Google's 2024 default-revoke of
-   this role on fresh projects.
-2. Redeploy with `firebase deploy --only functions:ping --force`
-   (`--force` also configures the Artifact Registry cleanup policy
-   that warned on the first attempt).
-3. Verify `ping` callable response via `gcloud functions call`.
-4. Only after all three green does Sprint 2.1.a close.
+Flit structural reference (reference, not copy):
+`C:\flutter_projects\flit\functions\src\shared\` — `aiProviders.ts`,
+`aiModelsLoader.ts`, `secrets.ts`, `explanationUtils.ts`.
 
-Deviations logged (no rollback for now — pragmatic accept, revisit
-only if deploy retry fails):
-- Cursor scaffolded `functions/` manually instead of running
-  `firebase init functions` interactively. Build + lint pass;
-  packaging reached Cloud Build before IAM failure. If deploy retry
-  succeeds post-IAM grant, deviation is functionally equivalent and
-  considered closed.
-- `firebase-functions` was briefly bumped to v7 during deploy
-  debugging, then pinned back to ^6.6.0. CB-3 forward-debug
-  micro-violation; final state clean.
+**Discovery is complete** (read-only report, 2026-05-02). The next
+Cursor prompt is **implementation**, not another discovery pass.
 
-**Sprint 2.1.b — `LLMService`** queued after 2.1.a closes. Will
-reference Flit's
-`C:\flutter_projects\flit\functions\src\shared\` (`aiProviders.ts`,
-`aiModelsLoader.ts`, `secrets.ts`, `explanationUtils.ts`) per CB-11
-(reference, not copy).
+**Wiring requirement (from discovery):** Flit's `secrets.ts` uses
+`defineSecret` (`firebase-functions/params`), while `aiProviders.ts`
+reads keys from `process.env`. Brainjamin must attach gen2 **secrets**
+on deployable callables so **`process.env`** is populated for the LLM
+SDKs at runtime — unify those patterns in 2.1.b.
+
+**SMTP `defineSecret` entries from Flit's `secrets.ts` are NOT ported**
+— Brainjamin V1 has no outbound product-email surface.
+
+Non-blocking note: `firebase-functions` remains pinned to **^6.6.0**;
+v7 upgrade deferred (breaking changes — separate future task).
 
 **Sprint 2.2 — generation + 3-layer verification + semantic dedup**
 queued after 2.1.b. Flit reference: `functions/src/embeddings/`.
@@ -481,6 +465,39 @@ mapped to Cursor sprint sequence), Brainjamin's sprints:
 ---
 
 ## ✅ RECENTLY DONE
+
+### 2026-05-02 — Sprint 2.1.a — Cloud Functions scaffolding closed
+
+- **IAM (project `brainjamin-prod-app`):** granted
+  `roles/cloudbuild.builds.builder` to default Compute service account
+  `1047648611720-compute@developer.gserviceaccount.com` (etag
+  `BwZQ0dJZNR4=`).
+- **IAM (appspot SA):** granted `roles/iam.serviceAccountUser` on
+  `brainjamin-prod-app@appspot.gserviceaccount.com` to
+  `user:info@stratechdynamic.net` (etag `BwZQ0d5TB8U=`).
+- **Firebase CLI:** logged out `info@mfbteknoloji.com`, logged in as
+  `info@stratechdynamic.net` (project Owner). Global CLI state — Flit
+  deploys from the same machine may need re-login; multi-account
+  `firebase login:add` deferred (not V1 critical path). Org policy
+  blocked adding mfbteknoloji as Owner; stratechdynamic remains sole CLI
+  account for Brainjamin.
+- **Deploy:** `firebase deploy --only functions:ping --force` succeeded
+  — `ping(us-central1)` successful update; Artifact Registry cleanup
+  policy configured (`--force`); deploy complete.
+- **Verification:** `gcloud functions describe ping --gen2` — **state:
+  ACTIVE**, environment GEN_2, **runtime: nodejs22**, revision
+  `ping-00001-six`, service account
+  `1047648611720-compute@developer.gserviceaccount.com`, callable URL
+  `https://us-central1-brainjamin-prod-app.cloudfunctions.net/ping`,
+  `updateTime` 2026-05-02T09:00:35Z. (Note: `gcloud functions call` is
+  1st-gen-only; curl with GCP identity token returns UNAUTHENTICATED —
+  callables expect Firebase Auth ID tokens; **describe ACTIVE** is the
+  ops verification gate until the Flutter app integrates.)
+
+- **Cursor discovery (no code change):** read-only pass on Flit shared
+  LLM modules (`aiProviders.ts`, `aiModelsLoader.ts`, `secrets.ts`,
+  `explanationUtils.ts`) — informs Sprint 2.1.b; key finding:
+  `defineSecret` vs `process.env` wiring documented in NEXT UP.
 
 ### 2026-05-01 — Sprint 2 unblock + Sprint 2.1.a in progress
 
@@ -916,7 +933,7 @@ BRAINJAMIN_RULES.md:
 
 ## 📁 CODEBASE SNAPSHOT
 
-**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 + 1.4 + 1.4.5 + 1.5 + 1.5.5 + **1.6** + **1.7** + **1.7.1** + Sprint 2.1.a (in progress);
+**Repo initialized 2026-04-30.** Sprint 1.1 + 1.2 + 1.3 + 1.4 + 1.4.5 + 1.5 + 1.5.5 + **1.6** + **1.7** + **1.7.1** + Sprint 2.1.a (closed 2026-05-02);
 Sprint 1 closed. Implementation shipped in workspace. Confirm `origin` /
 GitHub presence before relying on backup — see push step after commit.
 Branch: `main`. Current concrete tree (only files Brainjamin owns —
