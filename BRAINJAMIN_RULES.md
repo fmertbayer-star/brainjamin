@@ -1,5 +1,5 @@
 # BRAINJAMIN — RULES
-Last updated: 2026-05-01
+Last updated: 2026-05-02
 
 ---
 
@@ -207,9 +207,13 @@ time"). Brainjamin has no manual Live tournament creation — engine is
 fully autopilot. Live tournaments run on the fixed 07:00 UTC and 23:00
 UTC schedule. The 48-hour rule does not apply.
 
-### PR-8: AI Explanation Length
-Max 100 characters per question explanation. Truncate + warn, never
-reject/retry. (Carried over from Flit PR-8.)
+### PR-8: AI Explanation Length — DEPRECATED (2026-05-02)
+Originally: max 100 characters per question explanation, truncate + warn.
+Removed because V1 question schema no longer carries an `explanation`
+field. Generator output is `{question, options[4], correctIndex,
+category, difficulty}` only. Rule retained as DEPRECATED for
+traceability — do not re-introduce explanation field without reopening
+this decision.
 
 ### PR-9: NO Prizes — XP Only
 Brainjamin has no cash prizes, no digital prizes, no discount codes, no
@@ -264,27 +268,43 @@ architectural decision and must justify it against the V1 budget.
 Cursor prompts that produce user-facing strings always specify EN-only
 output and route through `intl` keys, never hardcoded strings.
 
-### PR-13: AI 3-Layer Verification (Generator + Correctness + Language)
-Every AI-generated question goes through three providers via `LLMService`:
+### PR-13: AI 2-Layer Verification (Generator + Correctness) — V2 simplified 2026-05-02
+Every AI-generated question goes through this pipeline via `LLMService`:
 
-1. **Generator** — primary Gemini Flash (with fallback to OpenAI then
-   Anthropic if all three layers must use distinct providers per call;
-   provider order rotates so no two calls in the same question pipeline
-   use the same provider).
-2. **Correctness verifier** — different provider, asks "is this correct?"
-   Failures graceful: question saved with `verifierStatus: "skipped"`.
-3. **Language/clarity verifier** — third distinct provider, scores 1-5.
-   Low scores set `flagged: true` but do NOT block the question from
-   pool. Advisory only.
+1. **Generator** — primary Gemini Flash, failover chain Gemini →
+   OpenAI → Anthropic. Output schema: `{question, options[4],
+   correctIndex, category, difficulty}`. Generator prompt MUST instruct
+   the model: "If unsure of any date, figure, name, or source, do not
+   generate the question." US English spelling is the default for all
+   user-facing strings. No `explanation` field — see PR-8 (DEPRECATED).
+2. **Moderation** — OpenAI Moderation API (free). Categories: hate,
+   sexual, violence, self-harm, illicit, political-extremism. Any flag
+   → reject, do not retry, generate a new question instead.
+3. **Correctness verifier** — different provider from the generator
+   (failover chain skips the generator's provider). Asks "is the marked
+   correct answer actually correct?" Verifier failure (network / API
+   error) → reject question, generate a new one. Verifier "incorrect"
+   verdict → reject, generate a new one. No `verifierStatus: "skipped"`
+   path; no flag-and-keep.
+4. **Semantic dedup** — OpenAI `text-embedding-3-small`, cosine
+   threshold 0.92 against existing `questions_public` embeddings. Hit
+   → reject, generate a new one.
 
-Plus semantic dedup (OpenAI embeddings, 0.92 cosine threshold).
+Reject policy is uniform: any of moderation fail / verifier fail /
+dedup hit → discard and regenerate. No flag-and-keep. No retry of the
+same prompt — the next attempt is a fresh generation.
 
-Both verifier layers MUST use a different provider from the generator.
-This asymmetry is enforced via `pickVerifierProvider` and
-`pickLanguageVerifierProvider` (carried from Flit).
+Provider asymmetry enforced via `pickVerifierProvider` (verifier MUST
+differ from the generator that produced the candidate question for that
+specific call).
 
-(Codifies V1.12 patch decision C.9 + the 3-layer extension agreed in
-the architecture session.)
+The previous 3-layer design (with a separate language/clarity verifier)
+is DEPRECATED 2026-05-02. Rationale: V1 ships English-only (PR-12),
+generator output is already adequate for clarity at Gemini Flash
+quality; a third LLM call doubled cost without measurable quality lift.
+
+(Supersedes V1.12 patch decision C.9 and the 2026-04-29 architecture
+session 3-layer extension.)
 
 ### PR-14: Mascot-Led Brand Surfaces
 The Brainjamin mascot must appear (visually or in voice) at these
