@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // isAdmin: hybrid OR per BRAINJAMIN_CONTEXT.md § Security Model.
+    // Custom claim (admin or isAdmin) OR users/{uid}.isAdmin == true.
+    // exists() guard before get() to avoid permission errors on missing
+    // user docs (anonymous users have no users/{uid} until first write).
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.admin == true ||
+        request.auth.token.isAdmin == true ||
+        (
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true
+        )
+      );
+    }
+
+    // questions_public — global question pool.
+    // Signed-in clients (incl. anonymous via Firebase Anonymous Auth)
+    // read for Daily / Self-Test / Arena prefilled / Duel pools.
+    // Writes are server-only (admin SDK in Cloud Functions).
+    match /questions_public/{questionId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // ai_config — server-only configuration (model names, prompt
+    // templates). Never exposed to clients.
+    match /ai_config/{docId} {
+      allow read, write: if false;
+    }
+
+    // Default deny for every other path. Each new collection gets
+    // its own match block when its feature ships.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
