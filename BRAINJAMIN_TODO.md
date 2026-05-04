@@ -1,51 +1,32 @@
 # BRAINJAMIN TODO
-Last updated: 2026-05-02
+Last updated: 2026-05-04
 
 ---
 
 ## NEXT UP — Active Thread
 
-**Sprint 2.1.b kapandı.** LLMService iskeleti gönderildi:
-`functions/src/shared/` altında `secrets.ts`, `aiModelsLoader.ts`,
-`aiProviders.ts`, `verifierProvider.ts`. Üç npm paketi kuruldu:
-`@google/generative-ai`, `openai`, `@anthropic-ai/sdk`. ESLint yapılandırması
-güncellendi — `require-jsdoc` / `valid-jsdoc` TS-only proje için kapatıldı.
+**Sprint 2.2.b kod tarafı tamam (STEP B + C-1):** `prompts.ts`, `pipeline.ts`,
+`functions/src/index.ts` içinde `generateQuestions` (Gen2, `AI_SECRETS`,
+540s, 1GiB), `functions/scripts/runPilot.mjs` pilot runner (REST anon auth +
+callable). `npm run build` / `eslint` yeşil. **`generateQuestions` prod’a
+deploy + `runPilot.mjs` ile 5 soruluk pilot** bir sonraki adım — Mert terminalde
+(`firebase deploy --only functions` sonra `node functions/scripts/runPilot.mjs`).
 
-**Sprint 2.2.a kapandı.** Beş yeni yardımcı modül
-`functions/src/shared/` altında: `categories.ts`, `difficulty.ts`,
-`questionSchema.ts`, `moderation.ts`, `embeddings.ts`. V1 için 20 kategori
-tanımlandı — **astrology dahil, religion çıkarıldı** (Mert kararı).
+**Repoda artık:** `firestore.rules`, `firestore.indexes.json`, `firebase.json`
+içinde `firestore` bloğu; `questions_public` + `ai_config` + default deny
+kuralları dosyada (Sprint 1 boşluğu kapanmış sayılır — Console ile uyum Mert
+doğrulamasında).
 
-**PR-13 sadeleştirildi:** üç katman yerine iki katman mantığı (generator +
-moderation + correctness verifier + embedding dedup; dil doğrulayıcı yok).
-**PR-8 DEPRECATED:** soru şemasında `explanation` alanı yok.
+**Sprint 2.2.b pilot sonrası:** `generateQuestions` için `TODO(sprint-6)`
+admin gate; Flutter `categories.dart` mirror; 4,000 seed batch hâlâ
+beklemede.
 
-**BLOKER:** `firestore.rules` dosyası repoda yok — Sprint 1 boşluğu. Sprint
-2.2.a STEP 6–7 (`questions_public` + `ai_config` kural blokları) **uygulanamadı**;
-metinler Cursor promptunda hazır, dosya olmadığı için repoya yazılmadı.
-
-**Sonraki seansın ilk işi:** Firebase Console → Firestore → Rules: mevcut
-kuralları kontrol et (default deny mi, test mode mu). Buna göre
-`firestore.rules` dosyasını sıfırdan oluştur; ardından `questions_public` ve
-`ai_config` `match` blokları eklenecek.
-
-**Bundan sonra:** Sprint 2.2.b — `generateQuestions` callable + 5–10 soruluk
-pilot (uçtan uca pipeline).
-
-**4,000 seed questions** content-ops batch **hâlâ duraklatılmış** (“yapı
-önce”).
-
-Non-blocking: `firebase-functions` **^6.6.0** pinli; v7 ayrı iş. Gen2
-callable’lara `secrets:` bağlama, 2.2.b ve sonrası deployable fonksiyonlarda
-netleşecek.
+Non-blocking: `pipeline.ts` ~469 satır (hedef ~250 — istenirse sonra sade
+refactor). `firebase-functions` **^6.6.0** pinli.
 
 ---
 
 ## 🔴 IMMEDIATE (Launch Blocker — all must be done before App Store submission)
-
-### Firestore — repo rules gap
-- **Restore `firestore.rules` at repo root** — Sprint 1 gap discovered
-  2026-05-02. Required before Sprint 2.2.b.
 
 ### Identity & accounts
 - ~~**Domain registration** — `brainjamin.com` (or `.net` if `.com` taken) on
@@ -203,10 +184,6 @@ patch — not closed in 2026-04-29 architecture session)
   without misleading. Pre-submission task.
 
 ### Pre-launch ops
-- **Add `questions_public` + `ai_config` rule blocks to `firestore.rules`**
-  — after the rules file exists at repo root; blocks already drafted in the
-  Sprint 2.2.a Cursor prompt (signed-in read for `questions_public`;
-  server-only patterns).
 - **Domain DNS configuration** — once GoDaddy purchase completes, point
   apex `brainjamin.com` to Firebase Hosting landing target. SSL
   provisioning via Firebase. Subdomain `app.brainjamin.com` if user app
@@ -235,14 +212,13 @@ patch — not closed in 2026-04-29 architecture session)
 
 Lower-priority items that can ship after V1 launch:
 
-- **Sprint 2.2.b — `generateQuestions` callable wiring + pilot run**
-  (5–10 questions end-to-end through the pipeline).
+- **Deploy `generateQuestions` + pilot run** — `firebase deploy --only
+  functions` (veya hedefli deploy), ardından `node functions/scripts/runPilot.mjs`
+  ile 5 soru; sonuçları doğrula (STEP C kalanı).
 - **Flutter-side category mirror** — `lib/core/constants/categories.dart`
-  matching `functions/src/shared/categories.ts` (needed for Sprint 2.2.b or
-  later UI work).
-- **Astrology category prompt guidance** — generator + verifier prompts must
-  clarify “astrological tradition, not scientific claims” to avoid verifier
-  reject loops.
+  matching `functions/src/shared/categories.ts` (UI / client doğrulama).
+- **Astrology prompts — pilot validation** — özel çerçeve `prompts.ts`
+  içinde; pilot batch ile verifier döngüsü kontrol et (gerekirse ince ayar).
 - **Master spec doc** — single canonical spec for Brainjamin. Lower
   priority since CONTEXT.md serves the same purpose for the architecture
   team of one (Mert + Claude). Build only if a third stakeholder enters.
@@ -478,6 +454,26 @@ mapped to Cursor sprint sequence), Brainjamin's sprints:
 ---
 
 ## ✅ RECENTLY DONE
+
+### 2026-05-04 — Firestore rules in repo + Sprint 2.2.b pipeline + pilot script
+
+- **`firestore.rules` + `firestore.indexes.json` + `firebase.json` `firestore`
+  block** — repo root; V1 minimal rules: `isAdmin()` (Flit-shaped),
+  `questions_public` (signed-in read, no client write), `ai_config` (no
+  client read/write), default deny. (Deploy from Mert machine if not yet
+  applied to Console.)
+- **Sprint 2.2.b STEP B:** `functions/src/shared/prompts.ts` (generator +
+  verifier prompt builders; astrology framing), `pipeline.ts`
+  (`generateOneQuestion` PR-13 pipeline; ~469 lines — above ~250 target),
+  `functions/src/index.ts` — guarded `admin.initializeApp()`, export
+  **`generateQuestions`** (`onCall`, `AI_SECRETS`, auth + category/difficulty/
+  count validation). `npm run build` + `npx eslint src` clean when shipped.
+- **Sprint 2.2.b STEP C-1:** `functions/scripts/runPilot.mjs` — CLI pilot
+  runner (anon Identity Toolkit sign-up + callable POST); Web **API key**
+  from `lib/firebase_options.dart`; dependency-free `.mjs`; `node --check`
+  OK.
+- **Pilot path:** deploy `generateQuestions` → run `runPilot.mjs` (STEP C
+  remainder — not executed in Cursor).
 
 ### 2026-05-02 — Cloud Functions + LLM shared layer + question utilities + docs
 
@@ -984,16 +980,16 @@ BRAINJAMIN_RULES.md:
 
 ## 📁 CODEBASE SNAPSHOT
 
-**Regenerated 2026-05-02.** Branch `main`. Sprint 1 closed; Sprint 2.1.a +
-2.1.b + 2.2.a shared utilities on disk. Confirm `origin` / GitHub before
-relying on remote backup.
+**Regenerated 2026-05-04.** Branch `main`. Sprint 2.2.b pipeline + callable +
+pilot script on disk (full git backup requires `origin` / committed state —
+confirm locally).
 
 ### Cloud Functions
 
 Source: `functions/src/index.ts`. Exports (alphabetical, comma-separated):
-`ping`.
+`generateQuestions`, `ping`.
 
-Export count **1** — below 80 (expected during Sprint 2 ramp-up; not an
+Export count **2** — below 80 (expected during Sprint 2 ramp-up; not an
 error).
 
 ### Screen inventory
@@ -1008,14 +1004,14 @@ Glob: `lib/features/**/*_screen.dart`. Exception path
 
 ### Firestore collections
 
-**From `firestore.rules`:** *(firestore.rules missing from repo root —
-Sprint 1 gap, see IMMEDIATE)* — no top-level `match` lines extracted.
+**From `firestore.rules` (explicit collection `match` paths, not
+`/{document=**}`):** `ai_config`, `questions_public`.
 
 **From `functions/src` (`collection("…")` at chain root):** `ai_config`
-(`aiModelsLoader.ts`).
+(`aiModelsLoader.ts`), `questions_public` (`pipeline.ts`).
 
-**Union** (alphabetical, deduplicated): `ai_config` **[code-only]** (no
-rules file; admin SDK / server paths only).
+**Union** (alphabetical, deduplicated): `ai_config`, `questions_public`
+**(rules + CF)**.
 
 ### Routes
 
@@ -1063,7 +1059,11 @@ functions/src/
   index.ts
   shared/         aiModelsLoader.ts, aiProviders.ts, categories.ts,
                   difficulty.ts, embeddings.ts, moderation.ts,
-                  questionSchema.ts, secrets.ts, verifierProvider.ts
+                  pipeline.ts, prompts.ts, questionSchema.ts, secrets.ts,
+                  verifierProvider.ts
+
+functions/scripts/
+  runPilot.mjs
 
 web/
   index.html
