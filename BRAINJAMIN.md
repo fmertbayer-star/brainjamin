@@ -1,13 +1,12 @@
-# BRAINJAMIN — PROJECT CONTEXT
-Last reviewed: 2026-04-30
+# BRAINJAMIN
+Last reviewed: 2026-05-04
 
-Structural truth of Brainjamin. Updated only when major architectural decisions
-change. Day-to-day work belongs in BRAINJAMIN_TODO.md. Behavior + project rules
-belong in BRAINJAMIN_RULES.md.
+Single source of structural truth for Brainjamin. Architecture, product, data
+model, security, design — locked decisions plus the implementation context
+needed to keep them locked.
 
-Brainjamin is a global B2C trivia/quiz app. The Turkish B2B product (Flit) and
-Brainjamin are independent — different repos, different stores, different
-audiences. Flit continues in Türkiye; Brainjamin targets EN-only, US-first.
+Day-to-day work belongs in `BRAINJAMIN_TODO.md`. Behavior rules + product
+hard NOs live in Project Instructions. This document does not duplicate them.
 
 ---
 
@@ -33,12 +32,10 @@ and low operating cost, it is rejected — no matter how technically interesting
   in onboarding, push notifications, achievement unlocks, error/empty states,
   loading screens, level-up animations.
 - **App Store subtitle format:** "Brainjamin: Trivia & Quiz Game"
-- **Brand color:** `#F97316` (orange, carried over from Flit). `#FF9F04` is
-  BANNED everywhere — UI, code, prompts, comments (PR-1).
+- **Brand color:** `#F97316` (orange). `#FF9F04` is BANNED everywhere — UI,
+  code, prompts, comments.
 - **Domain:** `brainjamin.com` (or `brainjamin.net` if `.com` unavailable);
   registered for 3 years on GoDaddy.
-- **Codebase:** New repo, clean copy of Flit user-side. B2B parts removed
-  before first commit. NOT a feature flag fork.
 
 ### Markets — Tier 1 only (6 countries)
 USA, UK, Canada, Australia, Ireland, New Zealand.
@@ -53,10 +50,13 @@ EN-only at launch. ES (Spanish) and other languages are explicitly **not**
 in V1 scope. All user-facing strings via Flutter `intl` —
 `lib/l10n/app_en.arb` only. No Turkish in user-facing surfaces.
 
+The architecture supports `app_es.arb`, `app_fr.arb` etc. additions in V2
+without refactor. V1 ships `app_en.arb` only.
+
 ### Age Rating
-- **13+** (App Store + Google Play). 2026 Apple update replaced 12+ with 13+.
+- **13+** (App Store + Google Play). Apple replaced 12+ with 13+ in 2026.
 - Onboarding includes a **neutral age gate** — birth year + month picker (not
-  Yes/No). Under-13 users are blocked from completing onboarding with a
+  Yes/No). Under-13 users are blocked from completing onboarding with the
   message: "Brainjamin is for ages 13 and up."
 - COPPA compliance: privacy policy explicitly states no knowing collection
   from under-13 users.
@@ -73,13 +73,12 @@ in V1 scope. All user-facing strings via Flutter `intl` —
 - 3 sign-in methods: Apple (mandatory on iOS per App Store rule), Google,
   Email + password.
 - **No email verification mail** sent (reduces friction).
-- **No phone verification** (no prizes, no need — Flit had it, removed in
-  Brainjamin).
+- **No phone verification anywhere.** No prizes → no need.
 - Anonymous → permanent transition via Firebase `linkWithCredential`.
 - **Anonymous users have NO `users_public/{uid}` doc.** It is created lazily
-  by an auth trigger Cloud Function the moment the user converts to
-  permanent. All XP, streak, achievements, and history are stored in
-  `users/{uid}` from day one and survive the conversion intact.
+  by an auth trigger Cloud Function (`onUserConverted`) the moment the user
+  converts to permanent. All XP, streak, achievements, and history are
+  stored in `users/{uid}` from day one and survive the conversion intact.
 - If account already exists on linking attempt: user is prompted; anonymous
   progress is lost if they sign into the existing account.
 - Sign-in method changeable post-conversion (Profile → Settings → "Add or
@@ -89,17 +88,20 @@ in V1 scope. All user-facing strings via Flutter `intl` —
 
 - **App ID:** `com.stratech.brainjamin`
 - **Service ID:** `com.stratech.brainjamin.signin`
-- **Apple Team ID:** `J863Y2PK9U` (Stratech Dynamic FZCO, shared with Flit)
+- **Apple Team ID:** `J863Y2PK9U` (Stratech Dynamic FZCO)
 - **Authorized callback URL:** `https://brainjamin-prod-app.firebaseapp.com/__/auth/handler`
 - **Authorized domain:** `brainjamin-prod-app.firebaseapp.com`
 - **Apple Sign In Key ID:** `L2K726P8TK`
-- **Apple `.p8` private key** stored locally on Mert's machine outside repo (`C:\flutter_projects\secrets\brainjamin\AuthKey_L2K726P8TK.p8`). Server-side use deferred — not in V1 scope. If a future feature requires `.p8` (e.g., `revokeUserAccount`), it must be moved to **Firebase Cloud Secret Manager** at that time.
+- **Apple `.p8` private key** stored locally on Mert's machine outside repo
+  (`C:\flutter_projects\secrets\brainjamin\AuthKey_L2K726P8TK.p8`).
+  Server-side use deferred — not in V1 scope. If a future feature requires
+  `.p8` (e.g., `revokeUserAccount`), it must be moved to **Firebase Cloud
+  Secret Manager** at that time.
 
 ### Monetization — V1
-- **AdMob:** Banner + Interstitial only. Rewarded explicitly **deferred to
-  V2**.
-- **Banner placements:** Duel lobby, Classic results, Self-Test lobby
-  (carry over from Flit). Refined post-launch with real navigation data.
+- **AdMob:** Banner + Interstitial only. Rewarded explicitly **deferred to V2**.
+- **Banner placements:** Duel lobby, Classic results, Self-Test lobby.
+  Refined post-launch with real navigation data.
 - **Interstitial placement rule:** Shown after game completion / score
   display, not interrupting gameplay. Frequency cap: max one per ~3
   minutes; suppressed entirely during the user's first 3 game sessions
@@ -108,7 +110,7 @@ in V1 scope. All user-facing strings via Flutter `intl` —
   Transparency) prompt before first ad. Both are launch-blockers.
 - **Subscription "Brainjamin Plus" → V2.** All Plus-related infrastructure
   (RevenueCat, `syncRevenueCatEntitlement`, `expirePlusSubscribers`,
-  billing grace period from V1.12 C.12, `users.billingIssue` field,
+  billing grace period, `users.billingIssue` field,
   `ad_consent.subscriptionStatus` cross-reference) is excluded from V1.
 
 ---
@@ -120,7 +122,7 @@ in V1 scope. All user-facing strings via Flutter `intl` —
 **1. Daily Question**
 - 1 question per day. EN.
 - **Source:** `questions_public` (NO LLM call per day; pool is pre-seeded
-  and continuously refilled by tournament engine — see V1.12 A.1).
+  and continuously refilled by tournament engine).
 - Reset: server-time authoritative, displayed in user's local timezone.
   Server stores `dateKey = serverTime.in(userTimezone).toISODate()`.
 - **No time limit on the question itself.** Daily is a "think and answer
@@ -128,7 +130,7 @@ in V1 scope. All user-facing strings via Flutter `intl` —
 - Streak counter; 1-day forgiveness per week (auto-resets on local Monday
   00:00 server-anchored). Forgive use is transparent — surface in profile
   as "🔥 12 days · 1 forgive available this week."
-- Wrong answer does NOT break streak (per V1.2 rule). XP awarded:
+- Wrong answer does NOT break streak. XP awarded:
   - Correct: 50 XP + explanation
   - Wrong: 10 XP + explanation
 - Push notification reminder at user's local 19:00 (service-category;
@@ -168,10 +170,10 @@ in V1 scope. All user-facing strings via Flutter `intl` —
   Validation enforced client-side AND server-side. Maximum:
   `scheduledStartAt ≤ now + 24 hours`.
 - **Minimum players:** 1 (the creator). Even if no one joins, the arena is
-  valid and runs solo at start time. Solo arena is intentionally allowed
-  — content generation is paid for, ad surfaces appear, mechanic is
+  valid and runs solo at start time. Solo arena is intentionally allowed —
+  content generation is paid for, ad surfaces appear, mechanic is
   consistent. `pruneStaleGames` does NOT cancel based on participant count.
-- **3-step creation wizard** (Flit-derived):
+- **3-step creation wizard:**
   - Step 1 — Basics: List vs Battle, optional arena name
   - Step 2 — Details: Pre-set Categories vs Custom Topic toggle, category
     grid (when pre-set), question count slider (5–25), start time picker
@@ -205,11 +207,11 @@ in V1 scope. All user-facing strings via Flutter `intl` —
 - **No bots.** If queue is empty, user waits.
 - XP: Win +50, Draw +25, Loss +10.
 
-### Auto-generated (2 — engine new in Brainjamin, did not exist in Flit)
+### Auto-generated (2)
 
 **5. Classic Tournament**
 - 20 questions, 4-choice multiple choice.
-- 24 hours open, async (Flit-style).
+- 24 hours open, async.
 - Per-question correct answers revealed only after `status === "ended"`
   (collusion prevention).
 - XP scale:
@@ -237,27 +239,11 @@ in V1 scope. All user-facing strings via Flutter `intl` —
   - Rank 11-50: 200 XP
   - Anyone who completed (51+): 100 XP
 
-### Removed from Flit (DO NOT PORT)
-- Brand panel (`main_brand.dart`, BrandRouter)
-- Brand registration, brand_users, brand_invites
-- Brand analytics, brand_monthly_reports
-- Sponsored tournaments (no cash/digital prizes — XP only)
-- Prediction Contest (originally planned for Brainjam, removed)
-- Surveys (brand-driven, no equivalent)
-- `prize_claims`, `live_prizes`, `user_discounts`
-- Domain splitting (3 hosting targets → 1 user app + admin route inside
-  user app, gated by `users.isAdmin`)
-- Phone verification gates
-- Sponsors tab
-- Brand demo request flow (`brand_demo_requests`, `brandDemoFunctions.ts`)
-- Landing page brand-side rewrites (Brainjamin landing is consumer-only)
-
 ---
 
-## TOURNAMENT ENGINE (NEW IN BRAINJAMIN)
+## TOURNAMENT ENGINE
 
-The most critical new module. Flit's tournaments were brand-created manually.
-Brainjamin's run on autopilot.
+The most critical auto-pilot module. Tournaments are not manually created.
 
 ### Schedule
 - **Two trigger times daily:** 07:00 UTC and 23:00 UTC.
@@ -305,44 +291,62 @@ Rotation index stored in `category_rotation/state` (single doc).
 
 ---
 
-## AI PIPELINE — 3-LAYER VERIFICATION
+## AI PIPELINE — 2-LAYER VERIFICATION
 
-Brainjamin's AI architecture combines Flit's verifier asymmetry pattern with
-the V1.12 patch fallback chain.
+Every AI-generated question goes through this pipeline via `LLMService`.
 
 ### Layer 1 — Generator
-`LLMService.generate()` — internal Cloud Functions module. Cascading retry:
-- Gemini 2.5 Flash (primary)
-- GPT-4o-mini (fallback 1)
-- Claude Haiku (fallback 2)
+- **Primary:** Gemini 2.5 Flash. Failover chain: Gemini → OpenAI → Anthropic.
+- **Output schema:** `{question, options[4], correctIndex, category, difficulty}`.
+  No `explanation` field.
+- **Generator prompt MUST instruct the model:** "If unsure of any date, figure,
+  name, or source, do not generate the question." US English spelling is the
+  default for all user-facing strings.
+- On total provider failure (all three timeout / rate-limit / malformed JSON):
+  write to Crashlytics, return null; calling function surfaces
+  `error_question_load_failed`.
 
-Each provider has its own prompt template. On failure (timeout, rate limit,
-malformed JSON), advance to next. If all three fail: write to Crashlytics,
-return null; calling function surfaces `error_question_load_failed`.
+### Moderation
+- **OpenAI Moderation API** (free tier).
+- Categories checked: hate, sexual, violence, self-harm, illicit,
+  political-extremism.
+- Any flag → reject the question, do not retry, regenerate fresh.
 
 ### Layer 2 — Correctness verifier
-For each generated question, a **different provider** verifies:
-- Is the marked correct answer actually correct?
-- Are the wrong answers genuinely wrong (not also correct)?
-
-Generator-vs-verifier provider asymmetry is enforced via `pickVerifierProvider`
-(generator must NOT be reused). Verifier failures are graceful: question is
-still saved, but flagged with `verifierStatus: "skipped"` and logged. Apple
-Review-acceptable because the moderation chain continues.
-
-### Layer 3 — Language/clarity verifier (V1, advisory only)
-Third distinct provider scores the question for grammar, clarity, and tone
-(1-5 scale). Low-scoring questions are saved to pool with `flagged: true`
-but **not blocked from use**. Admin Quality Review screen surfaces flagged
-questions for manual review. This is intentionally **advisory, not blocking**:
-- Pool growth never throttled by Layer 3 rejection
-- Bad questions become learning data for prompt calibration
-- Admin (Mert) can manually delete or correct over time
+- A **different provider** from the generator (failover chain skips the
+  generator's provider for this call). Asymmetry enforced via
+  `pickVerifierProvider` — verifier MUST differ from the generator that
+  produced the candidate question for that specific call.
+- Prompt: "Is the marked correct answer actually correct? Are the wrong
+  answers genuinely wrong (not also correct)?"
+- Verifier failure (network / API error) → reject question, regenerate.
+- Verifier "incorrect" verdict → reject, regenerate.
+- **No `verifierStatus: "skipped"` path. No flag-and-keep.**
 
 ### Semantic dedup
-Embedding-based check (OpenAI text-embedding-3-small). Cosine threshold:
-**0.92** (carried from Flit). Candidate question compared against existing
-`questions_public` of the same category. Above 0.92 = duplicate, regenerate.
+- **OpenAI `text-embedding-3-small`**.
+- **Embed text construction (`buildEmbedText`):** the embedding input
+  combines the question text, the correct answer, and all four options
+  — not the question stem alone. Pilot testing showed stem-only embeddings
+  produced false negatives (semantically distinct stems sharing overlapping
+  answer sets cleared the threshold). Including options sharpens cluster
+  separation for category-bucketed comparisons.
+- Cosine threshold: **0.88** against existing `questions_public`
+  embeddings of the same category. Calibrated against the pre-launch
+  pilot batch. With the enriched `buildEmbedText` shape, 0.92 was too
+  permissive — richer vectors push natural similarity higher, so a
+  lower threshold is needed to catch true near-duplicates without
+  false rejects.
+- Hit (≥0.88 similarity) → reject, regenerate.
+- Threshold and embed-text shape are owned by
+  `functions/src/shared/embeddings.ts` and
+  `functions/src/shared/pipeline.ts`. Changes there must be reflected
+  here.
+
+### Reject policy is uniform
+Any of moderation fail / verifier fail / dedup hit → discard and
+regenerate. **No flag-and-keep. No retry of the same prompt** — the next
+attempt is a fresh generation.
 
 ### Affected Cloud Functions
 - `generateTournamentContent` — uses LLMService + verifier + dedup
@@ -351,17 +355,17 @@ Embedding-based check (OpenAI text-embedding-3-small). Cosine threshold:
 - `findOrCreateDuelMatch` — pool-only, no LLM
 
 ### Cost projection
-- Per question: ~3 LLM calls (gen + correctness + language) + ~1 embedding
-  call. Per question cost ~$0.0003 (Gemini Flash dominant).
+- Per question: ~2 LLM calls (generator + correctness verifier) + 1
+  embedding call. Per question cost ~$0.0002 (Gemini Flash dominant).
 - Daily generation: ~40 questions (tournament engine) + ad-hoc Arena custom
-  topics → ~50-100 questions/day → **$1-3/day → $30-90/month** in steady
-  state.
-- Seed batch (4,000 questions, one-time): ~$2-5.
-- Provider fallback bursts in incident months: +$5-20.
+  topics → ~50-100 questions/day → **$0.50-2/day → $15-60/month** in
+  steady state.
+- Seed batch (4,000 questions, one-time): ~$1-3.
+- Provider fallback bursts in incident months: +$5-15.
 
 ---
 
-## ARCHITECTURE — Single panel (no panel split)
+## ARCHITECTURE — Single panel
 
 ### Hosting (Firebase Hosting)
 | Surface | Site | Public path | Live domain |
@@ -371,29 +375,27 @@ Embedding-based check (OpenAI text-embedding-3-small). Cosine threshold:
 
 Single user-app target. Admin lives **inside** the user app at
 `/admin/quality` and `/admin/dashboard`, gated by `users/{uid}.isAdmin`.
-Brand-side hosting (Flit had brand + admin separate targets) is removed.
 
 ### Entry points + routers
-- `lib/main.dart` → `AppRouter` (single router; no separate brand/admin
-  routers like Flit had)
-- `lib/core/bootstrap/app_bootstrap.dart` for Firebase init (carry over
-  pattern from Flit, simplified)
+- `lib/main.dart` → single `AppRouter`
+- `lib/router/app_router.dart` — go_router-based routing (post Sprint 1.4
+  migration; the earlier `lib/core/routing/` path is superseded)
+- `lib/core/bootstrap/app_bootstrap.dart` for Firebase init
 
 ### Stack
 - **Frontend:** Flutter (single codebase → web bundle + iOS + Android)
 - **Backend:** Firebase (Firestore, Cloud Functions, Hosting, Storage,
   Auth, Realtime Database for `.info/serverTimeOffset`, Crashlytics)
 - **AI:** Gemini API primary; OpenAI + Anthropic fallback. OpenAI also for
-  embeddings (text-embedding-3-small, 0.92 cosine for dedup).
+  embeddings (`text-embedding-3-small`, 0.92 cosine for dedup).
 - **Subscription billing:** None in V1. (V2: RevenueCat.)
 - **Payment:** None in V1.
 - **Domain registrar:** GoDaddy (`brainjamin.com`).
-- **Stripe / payment processor:** None.
 
 ### Test devices
-- Samsung SM-G990E (physical Android) — carry over from Flit
+- Samsung SM-G990E (physical Android)
 - iPhone (TBD — needs Apple Developer enrollment to provision)
-- Android emulator API 35: BANNED (MainActivity bug, see PR-2)
+- Android emulator API 35: BANNED (MainActivity bug — do not use)
 
 ---
 
@@ -421,9 +423,10 @@ Brand-side hosting (Flit had brand + admin separate targets) is removed.
 - `category_rotation/state` — single doc, rotation index for tournament
   engine
 - `blocked_terms/{en}` — content filter for custom Arena topics
-- `ai_cache` — LLM response cache (carry over from Flit)
-- `embeddings/{qId}` — text-embedding-3-small vectors, 0.92 cosine threshold
-  (Flit's `semanticDedup.ts` pattern)
+- `ai_cache` — LLM response cache
+- `embeddings/{qId}` — `text-embedding-3-small` vectors over
+  `buildEmbedText` output (question + correct answer + all four options),
+  0.88 cosine threshold
 
 ### Identity + audience
 - `users/{uid}` — main user doc (xp, level, streak, percentile, fcm_token,
@@ -432,7 +435,7 @@ Brand-side hosting (Flit had brand + admin separate targets) is removed.
   level, country). **Created lazily on anonymous→permanent conversion.**
   Anonymous users have NO `users_public` doc.
 - `usernames/{username}` — uniqueness reservation (lowercase doc id, atomic
-  transaction in `validateUsername` — see V1.12 B.6)
+  transaction in `validateUsername`)
 
 ### Leaderboards (V1)
 - `leaderboards/global` — denormalized top 100 by total XP, rebuilt by
@@ -440,13 +443,12 @@ Brand-side hosting (Flit had brand + admin separate targets) is removed.
 - `leaderboards/weekly_{weekKey}` — denormalized top 100 by weekly XP,
   rebuilt by `resetWeeklyLeaderboard` CF
 - `self_test_leaderboard/{categoryId}_{weekKey}` — Self-Test specific
-  (already listed under Game content above)
 
 ### Achievements (V1)
 - `achievements/{uid}/earned/{achievementId}` — per-user earned rozet
 - Achievement definitions are **client-side static** (Dart enum + asset
-  paths), not Firestore. Tasarim degisirse app update gerekir.
-- 17 launch achievements:
+  paths), not Firestore. Tasarım değişirse app update gerekir.
+- **17 launch achievements:**
   - Streak (4): 3, 7, 30, 100 days
   - Volume (4): first question, 100, 1000, 10000 answered
   - Tournament (4): first joined, top-10, top-3, rank-1
@@ -462,7 +464,12 @@ Brand-side hosting (Flit had brand + admin separate targets) is removed.
 - `push_queue/{uid}/pending/{pushId}` — quiet hours queue. Each push has
   `respectQuietHours: bool` flag. Streak-at-risk and Live-tournament-5min
   push set this to `false` (delivered immediately).
-- `notifications` — service-category push history (PR-6)
+- `notifications` — service-category push history
+- **In-app notification center** is the canonical surface for missed /
+  collapsed notifications. Push delivery may be deduplicated or dropped
+  during quiet hours overflow without user impact — the user sees the
+  full history inside the app. (Resolves earlier "push cap overflow"
+  question.)
 
 ### Reports & moderation
 - `reports/{reportId}` — user-submitted report on content (custom topic
@@ -470,7 +477,7 @@ Brand-side hosting (Flit had brand + admin separate targets) is removed.
   reachable. Admin reads via Firebase Console in V1; UI in V2.
 
 ### Ops
-- `session_secrets` — server-authoritative session timing (carry over)
+- `session_secrets` — server-authoritative session timing
 - `app_settings`, `ai_config`, `arena_config` — runtime configs
 - `admin_metrics/{dateKey}` — daily aggregated snapshot for read-only
   admin analytics dashboard
@@ -484,145 +491,118 @@ Brand-side hosting (Flit had brand + admin separate targets) is removed.
 - `live_results/.../answers/{qIndex}.submittedAt: serverTimestamp`
 - All score calculation is server-side (`finalizeLiveTournament` and
   `finalizeClassicTournament`). Client `score` value is candidate only.
-- `ServerTimeService` Dart class syncs from `.info/serverTimeOffset` once
-  at app start; offset cached in memory; all UI countdowns use
-  `ServerTimeService.now()`. `DateTime.now()` is forbidden in any code
-  path that affects scoring, streak, or state transitions.
 
 ---
 
-## CLOUD FUNCTIONS — V1 list (32 total)
+## CLOUD FUNCTIONS
 
-### Tournament engine (6)
-1. `generateTournamentContent` (T-24h scheduled)
-2. `makeTournamentVisible` (T-12h scheduled)
-3. `startLiveTournament` (T-0 scheduled — kicks off `runLiveTournament`)
-4. `runLiveTournament` (long-running loop, 540s timeout, drives clients
-   via `live_tournaments/{ltId}` state listener — V1.12 A.4)
-5. `sendLiveTournamentPush` (T-5min scheduled, quiet-hours-exempt)
-6. `finalizeClassicTournament` (T+24h scheduled)
-   `finalizeLiveTournament` is triggered dynamically by `runLiveTournament`
-   after Q20 reveal (~T+7) — not on a static schedule (V1.12 B.7).
+V1 Cloud Functions are organized into the following groups. The authoritative
+list of exports lives in `functions/src/index.ts` — query the file directly
+when you need exact names.
 
-### Daily Question (1)
-7. `selectDailyQuestion` (scheduled, daily 23:00 UTC, pool-only — V1.12 A.1)
-
-### Arena (1)
-8. `generateArenaQuestions` (callable; LLM for custom topic, pool for
-   pre-set category — V1.12 A.2)
-
-### Duel (1)
-9. `findOrCreateDuelMatch` (callable, atomic transaction with queue +
-   pool dedup — V1.12 A.3)
-
-### Watchdog & cleanup (2)
-10. `liveTournamentWatchdog` (every 1 min, recovers stalled tournaments —
-    V1.12 C.10)
-11. `pruneStaleGames` (daily 03:00 UTC, 7-day TTL on duels + arenas —
-    V1.12 C.11; arena participant-count cancellation rule REMOVED, solo
-    arena is valid)
-
-### Leaderboards (2)
-12. `rebuildLeaderboards` (scheduled, hourly — global + Self-Test category)
-13. `resetWeeklyLeaderboard` (scheduled, weekly Sunday 23:59 UTC)
-
-### Identity (1)
-14. `validateUsername` (callable, atomic transaction across `usernames/`,
-    `users.displayName`, `users_public.displayName` — V1.12 B.6)
-
-### Achievements (1)
-15. `checkAchievements` (auth-triggered + game-event-triggered, idempotent)
-
-### Notifications (5)
-16. `sendDailyReminder` (scheduled per user local 19:00)
-17. `sendStreakAtRiskReminder` (scheduled per user local 22:30,
-    quiet-hours-exempt)
-18. `notifyDuelInvite` (called from `findOrCreateDuelMatch` and invite
-    accept paths)
-19. `notifyDuelComplete` (game finalize trigger)
-20. `flushQueuedPushes` (scheduled, every 30 min — releases queued
-    pushes whose `releaseAt` has passed and `respectQuietHours == true`)
-
-### Account lifecycle (3)
-21. `softDeleteAccount` (callable, marks user for 30-day deletion)
-22. `purgeDeletedAccounts` (scheduled daily, hard-deletes after 30 days)
-23. `exportUserData` (callable, returns JSON of user's full data — GDPR
-    Article 20 / UK GDPR / CCPA)
-
-### Anonymous → permanent (1)
-24. `onUserConverted` (auth trigger, creates `users_public/{uid}` doc on
-    first non-anonymous sign-in, populates from `users/{uid}`)
-
-### Admin / analytics (2)
-25. `aggregateAdminMetrics` (scheduled daily, writes
-    `admin_metrics/{dateKey}` snapshot for admin dashboard)
-26. `submitReport` (callable, writes to `reports/{reportId}`)
-
-### Embeddings / dedup (2)
-27. `generateEmbedding` (callable, internal — used during
-    `generateTournamentContent` and `generateArenaQuestions` flows)
-28. `embeddingsBackfill` (scheduled or admin-triggered, fills missing
-    embeddings for historical questions)
-
-### Cleanup utilities (4)
-29. `wipeTestData` (admin-only callable, wipes seed/test data)
-30. `seedQuestions` (admin-only callable, runs the 4,000-question pre-launch
-    seed)
-31. `seedLegalDocs` (admin-only, populates Privacy + ToS)
-32. `setBrainjaminLogo` (admin-only, one-shot at launch — populates default
-    avatar / mascot images for users without a profile picture)
+- **Tournament engine** — content generation (T-24h), visibility (T-12h),
+  Live start + run loop, push (T-5min), Classic finalize (T+24h), Live
+  finalize (dynamic post-Q20)
+- **Daily Question** — daily 23:00 UTC selection, pool-only
+- **Arena** — callable: LLM for custom topic, pool for pre-set category
+- **Duel** — callable: atomic transaction with queue + pool dedup
+- **Watchdog & cleanup** — Live tournament stall recovery, 7-day TTL prune
+  for duels + arenas (arena-participant-count cancellation rule does NOT
+  apply; solo arena is valid)
+- **Leaderboards** — hourly rebuild (global + Self-Test category), weekly
+  Sunday 23:59 UTC reset
+- **Identity** — `validateUsername` atomic transaction across `usernames/`,
+  `users.displayName`, `users_public.displayName`
+- **Achievements** — auth-trigger + game-event-trigger, idempotent
+- **Notifications** — daily reminder (local 19:00), streak-at-risk (local
+  22:30, quiet-hours-exempt), duel invite, duel complete, queued push
+  flush every 30 min
+- **Account lifecycle** — soft delete (30-day queue), purge after 30 days,
+  GDPR/CCPA data export
+- **Anonymous → permanent** — `onUserConverted` auth trigger, creates
+  `users_public/{uid}` doc on first non-anonymous sign-in
+- **Admin / analytics** — daily metrics aggregation, report submission
+  callable
+- **Embeddings / dedup** — generation (called from question creation
+  flows) + backfill (admin-triggered for historical questions)
+- **Cleanup utilities** — `wipeTestData`, `seedQuestions` (4k pre-launch
+  seed), `seedLegalDocs`, `setBrainjaminLogo` (one-shot launch asset)
 
 ### Internal modules (not deployable functions)
 - `LLMService` — provider fallback chain (Gemini → OpenAI → Claude)
 - `ServerTimeService` — client-side time sync (Flutter)
-- `pickVerifierProvider`, `pickLanguageVerifierProvider` — generator
-  asymmetry helpers (carry over from Flit)
+- `pickVerifierProvider` — generator-vs-verifier asymmetry helper
 - `semanticDedup` — embedding cosine check
 - `mcqShuffle`, `mcqCorrectLetter` — answer shuffling utilities
 - `aiJsonParse` — robust JSON extraction from LLM outputs
-- `phoneVerificationShared` — REMOVED (no phone gates in Brainjamin)
-- `prizeExpiryReminderScheduled` — REMOVED (no prizes)
-- `monthlyBrandReportScheduled` — REMOVED (no brands)
-- `brandQuizCounters`, `brandFunctions`, `brandDemoFunctions` — REMOVED
-
-### Removed from Flit (do not port)
-- All brand-related CFs (~10 functions)
-- `predictionAutomation`, `predictionFunctions`, `predictionShared` (no
-  Predictions in Brainjamin)
-- `surveyFunctions` (no Surveys)
-- All `prize_*` and `discount_*` CFs
 
 ---
 
 ## SECURITY MODEL
 
-- **Anonymous users CAN play everything** (Brainjamin differs from Flit
-  here — no prize regulation pressure). Anonymous CANNOT: appear in
+### Server time authority
+All temporally meaningful Firestore writes use
+`FieldValue.serverTimestamp()`. `Timestamp.now()` (client clock) is
+forbidden anywhere in the code path that affects scoring, streak, state
+transitions, or game timing.
+
+Client-side, the `ServerTimeService` Dart class syncs from Firebase
+Realtime Database `.info/serverTimeOffset` once at app start; the offset
+is cached in memory; all UI countdowns use `ServerTimeService.now()`.
+Raw `DateTime.now()` is permitted only for cosmetic UI elements (e.g.
+"Last updated 2 minutes ago" relative timestamps).
+
+Daily Question / streak day computation uses
+`serverTime.in(userTimezone).toISODate()` (luxon or date-fns-tz on
+Cloud Functions). Travel handling: when user changes timezones, CF uses
+the **current** timezone for the day computation. No timezone-change
+tracking needed.
+
+### Auth & data access
+- **Anonymous users CAN play everything.** Anonymous CANNOT: appear in
   leaderboards (no `users_public` doc), be friends (V2), subscribe (V2).
 - **No phone verification gate** anywhere.
 - **Firestore admin gate:** `isAdmin()` is a hybrid OR —
   `request.auth.token.admin` OR `token.isAdmin` OR
-  `users/{uid}.isAdmin` (with `exists()` guard before `get()`). Carry
-  over from Flit.
+  `users/{uid}.isAdmin` (with `exists()` guard before `get()`).
 - **`users` doc** currently auth-readable for leaderboard/profile
   compatibility. Long-term: split private fields (`fcm_token`) to
-  `users_private/{uid}`. V2.
-- **App Check:** NOT activated yet. Defer until iOS Apple Developer
-  enrollment is complete so iOS (DeviceCheck/App Attest) and Android
-  (Play Integrity) ship together. Same posture as Flit.
-- **Classic tournament integrity:** `getResults` returns full questions
-  only when `status === "ended"`. Active tournaments return summary only.
-- **Live tournament integrity:** `runLiveTournament` is the single
-  authority on question advancement. Clients are listeners only.
-- **Content moderation:** Custom Arena topics filtered through
-  `blocked_terms/{en}` (pre-generation) AND Layer-3 language verifier
-  (post-generation, advisory). Reports queue + admin Quality Review for
-  manual moderation.
-- **Anti-cheat — timing:** Server timestamps mandatory for any temporally
-  meaningful write. Client clock manipulation cannot inflate streaks or
-  scores (V1.12 B.5, B.8).
-- **Anti-cheat — username uniqueness:** Atomic transaction across 3
-  documents (V1.12 B.6).
+  `users_private/{uid}` — V2.
+
+### App Check
+NOT activated yet. Defer until iOS Apple Developer enrollment is complete
+so iOS (DeviceCheck/App Attest) and Android (Play Integrity) ship together.
+Activation plan (deferred):
+1. Add `firebase_app_check` to pubspec
+2. Wire Play Integrity (Gradle) + DeviceCheck (iOS)
+3. Activate debug provider in main
+4. Register SHA-256 in Firebase Console
+5. Flip `enforceAppCheck: true` on critical user-facing callables first
+   (`submitAnswers`, `submitLiveAnswer`, `joinLiveTournament`,
+   `joinUserArena`, `submitDuelAnswers`, `validateUsername`,
+   `findOrCreateDuelMatch`, `generateArenaQuestions`, `submitReport`,
+   `softDeleteAccount`, `exportUserData`)
+6. Verify on physical device
+7. Flip remaining callables in second wave
+Do NOT enable on admin/seed/debug functions.
+
+### Tournament integrity
+- **Classic:** `getResults` returns full questions only when
+  `status === "ended"`. Active tournaments return summary only.
+- **Live:** `runLiveTournament` is the single authority on question
+  advancement. Clients are listeners only.
+
+### Anti-cheat
+- **Timing:** Server timestamps mandatory for any temporally meaningful
+  write. Client clock manipulation cannot inflate streaks or scores.
+- **Username uniqueness:** Atomic transaction across 3 documents
+  (`usernames/{lower}`, `users/{uid}.displayName`,
+  `users_public/{uid}.displayName`).
+
+### Moderation
+- Custom Arena topics filtered through `blocked_terms/{en}` (pre-generation)
+  AND moderation API (post-generation).
+- Reports queue + admin Quality Review for manual moderation.
 - **User moderation:** `users/{uid}.banned: true` flag. Security rules
   read this flag and deny all writes/reads from banned users. UI for
   setting flag is Firebase Console only in V1.
@@ -674,24 +654,47 @@ Admin V2 roadmap items (NOT in V1):
 
 ## DESIGN
 
-- **Brand color:** `#F97316`. `#FF9F04` BANNED (PR-1).
+- **Brand color:** `#F97316`. `#FF9F04` BANNED.
 - **UI direction:** vivid gradients, mobile-first.
-- **Mascot:** Brainjamin character appears in onboarding, push copy,
-  achievement unlock animations, error/empty states, loading screens,
-  level-up cards.
-- **Tone:** EN-native, Brainjamin voice — encouraging mentor, slightly
-  mischievous, broadly knowledgeable. No agressive monetization copy,
+- **Mascot:** Brainjamin character — encouraging mentor, slightly
+  mischievous, broadly knowledgeable, world-cultures curious.
+- **Tone:** EN-native, Brainjamin voice. No aggressive monetization copy,
   no Duolingo-style guilt-trip beyond the mild mascot personification.
 - **All strings via Flutter `intl`** — `lib/l10n/app_en.arb`. Architecture
   supports adding `app_es.arb` etc. in V2 without refactor.
-- **AI explanation max length:** 100 characters per question, truncate +
-  warn (PR-8 from Flit).
 - **Push tone:** Brainjamin-voiced. Examples:
   - Daily: "Brainjamin's daily question is ready — bet you can crack it"
   - Streak risk: "Brainjamin is worried! Your 12-day streak ends at midnight 🔥"
   - Live 5min: "Brainjamin is warming up — Live tournament starts in 5"
   - Duel match: "Brainjamin found you a worthy opponent 🥊"
   - Duel complete: "Brainjamin's verdict is in — see who won"
+
+### Mascot surfaces
+
+The mascot **must appear** (visually or in voice) at:
+- Onboarding welcome screen
+- Push notifications (in copy, not as an avatar)
+- Achievement unlock animations
+- Empty states (e.g., "No tournaments right now — Brainjamin is cooking
+  some up")
+- Error states (e.g., "Brainjamin couldn't find that. Try again?")
+- Loading screens (subtle — no skeleton-screen-replacing-with-mascot,
+  but the mascot's silhouette or accent color is acceptable)
+- Level-up cards
+- Daily question reveal screen (mascot reaction to user's answer)
+
+The mascot **does NOT appear** in:
+- Active gameplay screens (would distract)
+- Settings pages (utility, not personality)
+- Privacy Policy / ToS legal documents (legal must be clean)
+
+When a Cursor prompt creates a new user-facing surface, classify it into
+the "mascot appears" or "mascot absent" bucket and state which in the
+prompt.
+
+The mascot character bible is owned outside Cursor (Mert's brief to the
+illustrator + copywriter). Don't invent mascot personality traits beyond
+what's documented here.
 
 ### Design pipeline (Figma → Claude → Cursor)
 
@@ -712,8 +715,7 @@ Admin V2 roadmap items (NOT in V1):
   onboarding drop-off azalır → D1 retention korunur.
 - **Pipeline sıralaması:**
   1. Figma Make app'in tüm screen yapısı + flow'larını tasarlar
-  2. Mert tasarımı Figma workspace'inde gözden geçirir, ince ayar
-     yapar
+  2. Mert tasarımı Figma workspace'inde gözden geçirir, ince ayar yapar
   3. **Claude Figma MCP entegrasyonu** ile Figma node'larını okur:
      design tokens, exact CSS values, typography scale, component
      variants. Tahmin değil, Figma'dan exact değerler.
@@ -728,19 +730,49 @@ Admin V2 roadmap items (NOT in V1):
 
 ---
 
-## OPERATIONAL CONSTRAINTS
+## OPERATIONAL CONSTANTS
 
-- Mert does not write code. All implementation goes through Cursor (CB-2).
-- Quality gate per Cursor prompt: `flutter analyze` → 0 errors;
-  `npm run build` if functions changed → 0 errors (PR-3).
-- Communication languages: Cursor prompts in English, Mert ↔ Claude in
-  Turkish, user-facing UI in EN.
-- Marketing budget: minimal. ASO is the primary growth lever.
-- Mert commits to **30 min/day for 3 weeks post-launch** for ASO iteration.
-- Live tournament minimum lead time: there is no manual creation in
-  Brainjamin (engine-driven only); the 48h Flit rule does not apply.
-- Arena minimum lead time: 10 minutes (PR-7-Brainjamin).
-- All copy edited by EN-native copywriter pre-launch.
+### Code Quality Gate (per Cursor prompt that touches code)
+- `flutter analyze` → 0 errors
+- `npm run build` (if functions changed) → 0 errors
+- Claude reviews `flutter analyze` output for genuine bug risks
+  (e.g. `use_build_context_synchronously`, `unawaited_futures`,
+  `unused_local_variable` near logic) and flags them, even if not strictly
+  required to fix.
+
+**Bootstrap / startup smoke check:** Every Cursor prompt that touches
+bootstrap, service initialization, platform-conditional code, or any code
+that runs on app start MUST also include a `flutter run -d chrome` startup
+verification step. Cursor reports whether the app reached the expected
+first screen without console-red errors. (Reason: `flutter analyze` does
+not catch runtime initialization bugs — Sprint 1.5 passed analyzer cleanly
+but crashed on Chrome startup due to a missing Crashlytics web `kIsWeb`
+guard.) This is a smoke check, not a full E2E. Prompts touching only
+leaf-level UI widgets or pure-Dart utilities don't need it.
+
+### Test devices
+- Samsung SM-G990E (physical Android)
+- iPhone (TBD pending Apple Developer enrollment)
+- **Android emulator API 35: BANNED** (MainActivity bug)
+
+### Arena minimum lead time
+`scheduledStartAt ≥ now + 10 minutes`. No bypass — not even for admin.
+Validation enforced client-side AND server-side. Maximum:
+`scheduledStartAt ≤ now + 24 hours`.
+
+(Note: Live tournaments have no manual creation; engine is fully autopilot
+on fixed 07:00 UTC and 23:00 UTC schedule.)
+
+### Password minimum length
+Email/password sign-up and sign-in require minimum **8 characters**
+(stricter than Firebase's default 6, aligned with NIST 2024 password
+guidance).
+
+The constant lives in `lib/core/constants/auth_constants.dart` as
+`BrainjaminAuthConstants.minPasswordLength` and is read from there by all
+auth surfaces. Hardcoded literals are forbidden. Future auth entry points
+(Forgot Password reset flow, future Sign-In sheets, etc.) must read the
+same constant.
 
 ---
 
@@ -761,48 +793,48 @@ proven.
 
 ---
 
+## OPERATIONAL CONSTRAINTS
+
+- Mert does not write code. All implementation goes through Cursor.
+- Communication languages: Cursor prompts in English, Mert ↔ Claude in
+  Turkish, user-facing UI in EN.
+- Marketing budget: minimal. ASO is the primary growth lever.
+- Mert commits to **30 min/day for 3 weeks post-launch** for ASO iteration.
+- All copy edited by EN-native copywriter pre-launch.
+
+---
+
 ## REPO PROVENANCE
 
-- **Flit repo:** `github.com/fmertbayer-star/flit` (local:
-  `C:\flutter_projects\flit`)
 - **Brainjamin repo:** local app at `C:\flutter_projects\brainjamin`; git
   initialized during Sprint 1. GitHub remote
   `github.com/fmertbayer-star/brainjamin` may or may not be configured —
   verify with `git remote -v`.
 
-The two codebases are **fully independent**. No shared code, no shared
-Firebase project. Brainjamin uses its own Firebase project, App Store /
-Play listings, Apple Developer / Google Play Console entries.
-
-Stratech Dynamic FZCO is the publishing entity for both.
+Stratech Dynamic FZCO is the publishing entity.
 
 - **Package name (Android):** `com.stratech.brainjamin`
 - **Bundle ID (iOS):** `com.stratech.brainjamin`
 - **Firebase project ID:** `brainjamin-prod-app`
-- **Apple App Store Connect App ID:** `6765467964` (Brainjamin / iOS,
-  created 2026-04-30)
+- **Apple App Store Connect App ID:** `6765467964` (created 2026-04-30)
 
 ---
 
-## OPEN ARCHITECTURAL QUESTIONS
+## OPEN QUESTIONS
 
-These were not closed in the architecture phase and remain in
-BRAINJAMIN_TODO.md for resolution before Cursor sprint 1:
+These are unresolved architecture decisions. Track in `BRAINJAMIN_TODO.md`
+under priorities; close them here when a decision is made.
 
-- D-2: Question pool unbounded growth strategy (storage cost ceiling, archive
-  policy for very old questions)
-- D-3: Profile-tab anonymous warning card copy + placement
-- E-1: Push cap overflow handling (what happens if a user is owed 5
-  pushes after 8 hours of quiet hours — collapse, queue, or drop?)
-- E-2: Live tournament Battle Arena spectator screen polish (audio,
-  animation, share-result CTA)
-- F-1: Locale fallback for non-EN devices (user in Turkey downloading the
-  app — what does the OS-locale-EN-fallback feel like?)
-- F-2: App Store Connect content rating questionnaire — exact answers
-  drafted but not validated against 2026 questionnaire UI
-- F-3: ATT (App Tracking Transparency) prompt copy + timing — must comply
-  with Apple's 2024 stricter enforcement
+- **D-2:** Question pool unbounded growth strategy — storage cost ceiling,
+  archive policy for very old questions.
+- **D-3:** Profile-tab anonymous warning card — copy + placement.
+- **E-2:** Live tournament Battle Arena spectator screen polish — audio,
+  animation, share-result CTA.
+- **F-2:** App Store Connect content rating questionnaire — exact answers
+  drafted but not validated against 2026 questionnaire UI.
+- **F-3:** ATT (App Tracking Transparency) prompt copy + timing — must
+  comply with Apple's 2024+ stricter enforcement.
 
 ---
 
-*End of BRAINJAMIN_CONTEXT.md*
+*End of BRAINJAMIN.md*
