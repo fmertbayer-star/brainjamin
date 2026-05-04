@@ -693,6 +693,39 @@ Admin V2 roadmap items (NOT in V1):
   - Duel match: "Brainjamin found you a worthy opponent 🥊"
   - Duel complete: "Brainjamin's verdict is in — see who won"
 
+### Design pipeline (Figma → Claude → Cursor)
+
+- **Tasarım aracı:** Figma + Figma Make (AI design tool). Workspace +
+  master file link Sprint 4 sonu brief'inde eklenecek.
+- **Design pass timing:** Sprint 4 sonu = brief yazımı (tüm screen
+  iskeleti, route'lar, state'ler kod tarafında oturduktan sonra);
+  Sprint 5 = implementation (Profile + Ranking + Achievements zaten
+  kapsamlı UI sprint'i — design pass o sprint'in içinde Cursor
+  prompt'larıyla uygulanır). Daha erken brief eksik feature'lar
+  üzerinden tasarım yapılmasına yol açar → refactor.
+- **Brand differentiator = mascot + brand orange + tone.** UX paternleri
+  trivia kategorisinin convention'larını takip eder (Trivia Crack,
+  Quizizz, Kahoot reference paternleri). "Özgür ve özgün tasarım"
+  yalnızca mascot expression'larında, transition animasyonlarında ve
+  accent detaylarında çıkar — **ana flow'da convention'a sadık kalınır**.
+  Sebep: kullanıcı, tanıdık paternleri zihninde önceden bildiği için
+  onboarding drop-off azalır → D1 retention korunur.
+- **Pipeline sıralaması:**
+  1. Figma Make app'in tüm screen yapısı + flow'larını tasarlar
+  2. Mert tasarımı Figma workspace'inde gözden geçirir, ince ayar
+     yapar
+  3. **Claude Figma MCP entegrasyonu** ile Figma node'larını okur:
+     design tokens, exact CSS values, typography scale, component
+     variants. Tahmin değil, Figma'dan exact değerler.
+  4. Claude her ekran için kapsamlı Cursor prompt yazar (Flutter
+     widget tree + token referansları + spacing/sizing/color tokens
+     + animation curves)
+  5. Cursor prompt'a göre Flutter implement eder
+  6. Quality gate: flutter analyze + Chrome smoke + Samsung smoke
+- **Risk yönetimi:** Figma Make HTML/Tailwind export'u Brainjamin için
+  kullanılmaz (Flutter codebase). Tek doğru yol: Claude Figma MCP →
+  Cursor brief.
+
 ---
 
 ## OPERATIONAL CONSTRAINTS
