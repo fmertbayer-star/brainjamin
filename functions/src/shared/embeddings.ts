@@ -1,5 +1,5 @@
 /**
- * Brainjamin V1 dedup: cosine ≥ 0.92 threshold per PR-13. Threshold tuning is a Sprint 2.3 task after pilot batch.
+ * Brainjamin V1 dedup: cosine ≥ 0.88 threshold per PR-13. Threshold tuning is a Sprint 2.3 task after pilot batch.
  */
 
 import OpenAI from "openai";
@@ -7,7 +7,22 @@ import {getEnv} from "./aiProviders";
 
 export const EMBEDDING_MODEL = "text-embedding-3-small";
 export const EMBEDDING_DIMS = 1536;
-export const DEDUP_THRESHOLD = 0.92;
+export const DEDUP_THRESHOLD = 0.88;
+
+export function buildEmbedText(input: {
+  question: string;
+  options: readonly string[];
+  correctIndex: number;
+}): string {
+  const q = input.question.trim();
+  const o = input.options;
+  const a = o[input.correctIndex].trim();
+  return (
+    `Q: ${q}\n` +
+    `A: ${a}\n` +
+    `Options: ${o[0].trim()} | ${o[1].trim()} | ${o[2].trim()} | ${o[3].trim()}`
+  );
+}
 
 export async function embedText(text: string): Promise<number[]> {
   const apiKey = getEnv("OPENAI_API_KEY");

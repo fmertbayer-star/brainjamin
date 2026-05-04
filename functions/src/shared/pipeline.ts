@@ -9,7 +9,7 @@ import {logger} from "firebase-functions/v2";
 import {generateWithProviders, type GenProvider} from "./aiProviders";
 import type {Category} from "./categories";
 import {isCategory} from "./categories";
-import {cosineSimilarity, DEDUP_THRESHOLD, embedText, EMBEDDING_DIMS} from "./embeddings";
+import {buildEmbedText, cosineSimilarity, DEDUP_THRESHOLD, embedText, EMBEDDING_DIMS} from "./embeddings";
 import type {Difficulty} from "./difficulty";
 import {isDifficulty} from "./difficulty";
 import {moderateText} from "./moderation";
@@ -337,7 +337,11 @@ export async function generateOneQuestion(
 
     let embedding: number[];
     try {
-      embedding = await embedText(genQ.question);
+      embedding = await embedText(buildEmbedText({
+        question: genQ.question,
+        options: genQ.options,
+        correctIndex: genQ.correctIndex,
+      }));
     } catch (err) {
       const detail =
         "embedding_failed:" +
