@@ -287,5 +287,93 @@
   "profileEmptyBody": "Play a few rounds and Brainjamin will fill this with your wins.",
   "@profileEmptyBody": {
     "description": "Profile tab empty body"
+  },
+  "daily_card_headline": "Today's Daily Question",
+  "@daily_card_headline": {
+    "description": "TODO(copywriter) Daily card headline"
+  },
+  "daily_card_cta_play": "Play today's question",
+  "@daily_card_cta_play": {
+    "description": "TODO(copywriter) Daily card primary CTA before answer"
+  },
+  "daily_card_cta_see_result": "See result",
+  "@daily_card_cta_see_result": {
+    "description": "TODO(copywriter) Daily card CTA after answer"
+  },
+  "daily_card_streak_label": "🔥 {count}",
+  "@daily_card_streak_label": {
+    "description": "TODO(copywriter) Daily card streak badge",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daily_card_forgive_available": "One forgive available this week.",
+  "@daily_card_forgive_available": {
+    "description": "TODO(copywriter) Daily card forgive helper text"
+  },
+  "daily_screen_loading": "Loading today's question",
+  "@daily_screen_loading": {
+    "description": "TODO(copywriter) Daily screen loading caption"
+  },
+  "daily_screen_error_generic": "Couldn't load today's question",
+  "@daily_screen_error_generic": {
+    "description": "TODO(copywriter) Daily screen generic error state"
+  },
+  "daily_screen_error_no_questions": "No question today, check back later.",
+  "@daily_screen_error_no_questions": {
+    "description": "TODO(copywriter) Daily screen empty-pool friendly message"
+  },
+  "daily_screen_xp_correct": "+{xp} XP",
+  "@daily_screen_xp_correct": {
+    "description": "TODO(copywriter) Daily reveal badge when answer is correct",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "daily_screen_xp_wrong": "+{xp} XP",
+  "@daily_screen_xp_wrong": {
+    "description": "TODO(copywriter) Daily reveal badge when answer is wrong",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "daily_screen_streak_result": "🔥 streak now {count}",
+  "@daily_screen_streak_result": {
+    "description": "TODO(copywriter) Daily reveal streak result line",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "daily_overflow_report": "Report this question",
+  "@daily_overflow_report": {
+    "description": "TODO(copywriter) Daily overflow menu report action"
+  },
+  "daily_overflow_report_coming_soon": "Reporting coming soon",
+  "@daily_overflow_report_coming_soon": {
+    "description": "TODO(copywriter) Daily report placeholder snackbar copy"
+  },
+  "daily_coach_title": "One question a day, simple as that.",
+  "@daily_coach_title": {
+    "description": "TODO(copywriter) Daily first-entry coach mark title"
+  },
+  "daily_coach_body": "No timer, no pressure. Build a streak. We'll forgive one slip a week.",
+  "@daily_coach_body": {
+    "description": "TODO(copywriter) Daily first-entry coach mark body"
+  },
+  "daily_coach_cta": "Got it.",
+  "@daily_coach_cta": {
+    "description": "TODO(copywriter) Daily first-entry coach mark dismiss CTA"
+  },
+  "daily_screen_retry": "Retry",
+  "@daily_screen_retry": {
+    "description": "TODO(copywriter) Daily error retry action"
   }
 }

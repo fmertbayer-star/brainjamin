@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import '../core/services/onboarding_flow_controller.dart';
 import '../features/arena/arena_screen.dart';
 import '../features/duel/duel_screen.dart';
+import '../features/daily/widgets/daily_question_screen.dart';
+import '../features/daily/state/daily_question_controller.dart';
 import '../features/main_shell/main_shell.dart';
 import '../features/onboarding/age_blocked_screen.dart';
 import '../features/onboarding/age_gate_screen.dart';
@@ -62,6 +64,15 @@ final class AppRouter {
           path: '/duel',
           name: 'duel',
           builder: (context, state) => const DuelScreen(),
+        ),
+        GoRoute(
+          path: '/daily',
+          name: 'daily',
+          builder: (context, state) => DailyQuestionScreen(
+            controller: state.extra is DailyQuestionController ?
+              state.extra! as DailyQuestionController :
+              null,
+          ),
         ),
         GoRoute(
           path: '/onboarding/welcome',
