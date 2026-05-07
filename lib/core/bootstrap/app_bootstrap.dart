@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import '../../firebase_options.dart';
 import '../services/auth_service.dart';
 import '../services/onboarding_state_service.dart';
+import '../services/push_permission_service.dart';
 import '../services/server_time_service.dart';
 
 /// Result of [bootstrapBrainjamin] — onboarding flags pre-loaded for sync startup.
@@ -30,6 +31,12 @@ Future<BootstrapResult> bootstrapBrainjamin() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  try {
+    final status = await PushPermissionService.getCurrentStatus();
+    debugPrint('[bootstrap] push permission status: $status');
+  } catch (e) {
+    debugPrint('[bootstrap] push scaffolding error: $e');
+  }
   try {
     await ServerTimeService.initialize();
   } catch (e, stackTrace) {

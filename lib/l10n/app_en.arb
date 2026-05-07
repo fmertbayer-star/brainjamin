@@ -375,5 +375,21 @@
   "daily_screen_retry": "Retry",
   "@daily_screen_retry": {
     "description": "TODO(copywriter) Daily error retry action"
+  },
+  "push_primer_title": "Stay in the loop?",
+  "@push_primer_title": {
+    "description": "Push permission soft primer title"
+  },
+  "push_primer_body": "Brainjamin can nudge you when your daily question is ready and remind you before your streak slips. Game updates only — never spam.",
+  "@push_primer_body": {
+    "description": "Push permission soft primer body copy"
+  },
+  "push_primer_accept": "Sure, remind me",
+  "@push_primer_accept": {
+    "description": "Push permission soft primer accept CTA"
+  },
+  "push_primer_decline": "Not now",
+  "@push_primer_decline": {
+    "description": "Push permission soft primer decline CTA"
   }
 }

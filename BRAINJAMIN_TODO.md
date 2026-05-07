@@ -26,11 +26,23 @@ kapanan işler:
   forgive subtext + first-entry coach mark (persistence: Firestore
   permanent / SharedPreferences anonymous) + 3-dot overflow menu
   placeholder. Chrome smoke 7-step end-to-end doğrulandı.
+- FCM client scaffolding canlıda (commit `<COMMIT_HASH>`):
+  `firebase_messaging` ^15.2.10 pubspec'e eklendi, iOS
+  `aps-environment=development` + `UIBackgroundModes` +
+  `UNUserNotificationCenter` delegate wiring, Android
+  `POST_NOTIFICATIONS` permission, `lib/core/services/
+  push_permission_service.dart` (`getCurrentStatus()` +
+  `requestPermission()`), bootstrap smoke log Chrome'da
+  `AuthorizationStatus.notDetermined` confirmed.
 
-**Sıradaki adım: Push permission soft primer.** Daily submit sonrası
-tetiklenir. iOS native dialog + Android 13+ POST_NOTIFICATIONS runtime,
-ikisinde de Brainjamin-voiced soft primer önce çıkar, "Not now" → 7-day
-cooldown. ATT primer'ı DEĞİL (o ad load öncesi, Sprint 6). Spec ref:
+**Sıradaki adım: Push permission soft primer flow.** FCM scaffolding
+yerinde (yukarıda), şimdi modal + Daily submit success trigger +
+Firestore/SharedPreferences cooldown (`pushPrimerCooldownUntil`,
+anon prefs key `bj_push_primer_cooldown_until`, 7 gün) + permission
+grant sonrası `users/{uid}.fcm_token` capture yazılacak. iOS native
+dialog + Android 13+ POST_NOTIFICATIONS runtime, ikisinde de
+Brainjamin-voiced soft primer önce çıkar, "Not now" → 7-day cooldown.
+ATT primer'ı DEĞİL (o ad load öncesi, Sprint 6). Spec ref:
 BRAINJAMIN.md § NOTIFICATIONS & PUSH § iOS / Android push permission.
 
 **Sonra:** `submitReport` CF + report modal UI (Daily overflow şu an
@@ -172,6 +184,15 @@ parçası).
   `assertNotAnonymous`-style checks with a single
   `protectedCallable(handler, {requireAuth, requireNonAnon, requireAdmin,
   rateLimit})` wrapper. Refactor task.
+- **Anonymous → permanent SharedPreferences migration helper** —
+  client-side, runs on `linkWithCredential` success in
+  `lib/core/services/auth_service.dart`. Single helper that migrates
+  every anonymous-local state key into `users/{uid}` Firestore. V1
+  tracked keys: `tutorial_seen_daily` (Daily coach mark),
+  `bj_push_primer_cooldown_until` (push primer cooldown). Future keys
+  for additional coach marks and primers register here. Currently
+  patched per-feature (each feature reads anon-prefs OR perm-Firestore
+  inline) — sustainable only at V1 scale; consolidation is V2 hygiene.
 - **Code-only collections audit** — `ai_cache`, `live_push_reminders`,
   `daily_questions`, `blocked_terms`, `embeddings` may be referenced in
   CF code without explicit Firestore rules — default deny. Verify
