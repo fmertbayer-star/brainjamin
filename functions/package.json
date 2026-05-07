@@ -19,9 +19,11 @@
     "@google/generative-ai": "^0.24.1",
     "firebase-admin": "^13.5.0",
     "firebase-functions": "^6.6.0",
+    "luxon": "^3.7.2",
     "openai": "^5.23.2"
   },
   "devDependencies": {
+    "@types/luxon": "^3.7.1",
     "@types/node": "^22.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",

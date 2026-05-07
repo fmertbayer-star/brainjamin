@@ -7,9 +7,8 @@ import type {Category} from "./shared/categories";
 import {isCategory} from "./shared/categories";
 import type {Difficulty} from "./shared/difficulty";
 import {isDifficulty} from "./shared/difficulty";
-import type {AttemptLog} from "./shared/pipeline";
-import {generateOneQuestion} from "./shared/pipeline";
 import {AI_SECRETS} from "./shared/secrets";
+import {selectDailyQuestion} from "./callables/selectDailyQuestion";
 
 if (admin.apps.length === 0) {
   admin.initializeApp();
@@ -61,7 +60,8 @@ export const generateQuestions = onCall(
     }
 
     const persisted: Array<{id: string; attempts: number}> = [];
-    const rejected: Array<{slot: number; attempts: AttemptLog[]}> = [];
+    const rejected: Array<{slot: number; attempts: unknown[]}> = [];
+    const {generateOneQuestion} = await import("./shared/pipeline");
     for (let i = 0; i < c; i++) {
       const result = await generateOneQuestion(
         category as Category,
@@ -92,3 +92,5 @@ export const generateQuestions = onCall(
     };
   },
 );
+
+export {selectDailyQuestion};

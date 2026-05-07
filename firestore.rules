@@ -32,6 +32,28 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // daily_questions — one daily question per dateKey.
+    // Clients can read; writes are Cloud Functions only (admin SDK bypass).
+    match /daily_questions/{dateKey} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // daily_answers — per-user daily answer documents.
+    // Read only own answer docs; writes are Cloud Functions only.
+    match /daily_answers/{answerId} {
+      allow read: if request.auth != null &&
+        resource.data.uid == request.auth.uid;
+      allow write: if false;
+    }
+
+    // used_questions — per-user seen-question history for dedup.
+    // Read only own subtree; writes are Cloud Functions only.
+    match /used_questions/{uid}/seen/{qId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
     // Default deny for every other path. Each new collection gets
     // its own match block when its feature ships.
     match /{document=**} {
