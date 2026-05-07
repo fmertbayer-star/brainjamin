@@ -10,25 +10,32 @@ the codebase itself (`functions/src/index.ts`, `lib/features/**`,
 
 ## NEXT UP — Active Thread
 
-**Sprint 2 — Daily Question, mid-thread.** `selectDailyQuestion`
-read-side canlıda doğrulandı (commit `d4656ac`): server-authoritative
-dateKey + lazy `daily_questions/{dateKey}` create + transaction +
-shuffle snapshot + anti-cheat. Smoke test idempotent, iki çağrı aynı
-qId döndürdü.
+**Sprint 2 — Daily Question (backend + UI) tamamlandı.** Bu oturumda
+kapanan işler:
 
-**Sıradaki adım: `submitDailyAnswer` CF.** Cevap kaydı +
-correct/wrong eval + XP awarding (50 doğru / 10 yanlış) + streak
-update (1-day weekly forgive logic, local-Monday reset, server-
-anchored) + `daily_answers/{uid}_{dateKey}` write. `used_questions`
-write zaten `selectDailyQuestion` tarafında olduğundan tekrar yazılmaz.
-Anonymous user da streak + XP biriktirir (leaderboard hariç).
+- `selectDailyQuestion` callable canlıda (commit `d4656ac`) — server-
+  authoritative dateKey, lazy `daily_questions/{dateKey}` create,
+  shuffle snapshot, anti-cheat (`correctIndex` cevap öncesi gizli).
+- `submitDailyAnswer` callable canlıda (commit `9c6895b`) — answer
+  validation, XP awarding (50/10), streak + 1-day weekly forgive
+  logic (ISO weekKey, local-Monday reset), single-transaction over
+  `users/{uid}` + `daily_answers/{uid}_{dateKey}`.
+- `mcqShuffle` util eklendi (`functions/src/shared/mcqShuffle.ts`).
+- Daily Question Flutter UI tam spec'te (commit `d4079c9`):
+  Home card + `/daily` route + ready/reveal states + streak rozeti +
+  forgive subtext + first-entry coach mark (persistence: Firestore
+  permanent / SharedPreferences anonymous) + 3-dot overflow menu
+  placeholder. Chrome smoke 7-step end-to-end doğrulandı.
 
-**Sonra:** Daily Question Flutter UI (Sprint 2 client-side ilk parçası),
-ardından Self-Test 25-Q loop'una geçiş.
+**Sıradaki adım: Push permission soft primer.** Daily submit sonrası
+tetiklenir. iOS native dialog + Android 13+ POST_NOTIFICATIONS runtime,
+ikisinde de Brainjamin-voiced soft primer önce çıkar, "Not now" → 7-day
+cooldown. ATT primer'ı DEĞİL (o ad load öncesi, Sprint 6). Spec ref:
+BRAINJAMIN.md § NOTIFICATIONS & PUSH § iOS / Android push permission.
 
-**Tech debt blokajı yok** — `flagged` backfill P1'e log'landı
-(aşağıda), Sprint 4 öncesi tamamlanmalı, şu an `selectDailyQuestion`
-in-memory fallback'i ile production stabil.
+**Sonra:** `submitReport` CF + report modal UI (Daily overflow şu an
+placeholder), sonra Self-Test 25-Q loop (Sprint 2'nin kalan en büyük
+parçası).
 
 ---
 
