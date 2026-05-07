@@ -10,22 +10,9 @@ the codebase itself (`functions/src/index.ts`, `lib/features/**`,
 
 ## NEXT UP — Active Thread
 
-**Sprint 2 — Daily Question (backend + UI) tamamlandı.** Bu oturumda
-kapanan işler:
+**Sprint 2 — Daily Question + Push Permission Soft Primer
+tamamlandı.** Bu oturumda kapanan işler:
 
-- `selectDailyQuestion` callable canlıda (commit `d4656ac`) — server-
-  authoritative dateKey, lazy `daily_questions/{dateKey}` create,
-  shuffle snapshot, anti-cheat (`correctIndex` cevap öncesi gizli).
-- `submitDailyAnswer` callable canlıda (commit `9c6895b`) — answer
-  validation, XP awarding (50/10), streak + 1-day weekly forgive
-  logic (ISO weekKey, local-Monday reset), single-transaction over
-  `users/{uid}` + `daily_answers/{uid}_{dateKey}`.
-- `mcqShuffle` util eklendi (`functions/src/shared/mcqShuffle.ts`).
-- Daily Question Flutter UI tam spec'te (commit `d4079c9`):
-  Home card + `/daily` route + ready/reveal states + streak rozeti +
-  forgive subtext + first-entry coach mark (persistence: Firestore
-  permanent / SharedPreferences anonymous) + 3-dot overflow menu
-  placeholder. Chrome smoke 7-step end-to-end doğrulandı.
 - FCM client scaffolding canlıda (commit `5faa2f6`):
   `firebase_messaging` ^15.2.10 pubspec'e eklendi, iOS
   `aps-environment=development` + `UIBackgroundModes` +
@@ -34,20 +21,37 @@ kapanan işler:
   push_permission_service.dart` (`getCurrentStatus()` +
   `requestPermission()`), bootstrap smoke log Chrome'da
   `AuthorizationStatus.notDetermined` confirmed.
+- Push permission soft primer flow canlıda (commit `b00654c`):
+  `lib/core/services/push_primer_service.dart` (3 public method:
+  `shouldShowPrimer`, `writeCooldown`,
+  `requestAndCaptureToken` + bootstrap-time
+  `captureTokenIfAuthorized`),
+  `lib/features/push/widgets/push_primer_dialog.dart`
+  (Brainjamin-voiced AlertDialog, `barrierDismissible: false`,
+  `kIsWeb` early return), Daily submit success callback
+  (`onSubmitSuccess` → `addPostFrameCallback` → modal),
+  7-day cooldown (`users/{uid}.pushPrimerCooldownUntil` permanent /
+  `bj_push_primer_cooldown_until` SharedPreferences anonymous),
+  ARB keys `push_primer_title|body|accept|decline`. `firestore.rules`
+  `match /users/{uid}` self-managed allowlist (fcm_token,
+  fcm_token_updated_at, pushPrimerCooldownUntil, tutorialSeen,
+  profileNudgeHiddenUntil) deploy edildi. Samsung SM-G990E smoke
+  `[primer.capture] token write success` + Firestore
+  `users/{uid}.fcm_token` populated doğrulandı. Diagnostic
+  debugPrint'ler temizlendi.
 
-**Sıradaki adım: Push permission soft primer flow.** FCM scaffolding
-yerinde (yukarıda), şimdi modal + Daily submit success trigger +
-Firestore/SharedPreferences cooldown (`pushPrimerCooldownUntil`,
-anon prefs key `bj_push_primer_cooldown_until`, 7 gün) + permission
-grant sonrası `users/{uid}.fcm_token` capture yazılacak. iOS native
-dialog + Android 13+ POST_NOTIFICATIONS runtime, ikisinde de
-Brainjamin-voiced soft primer önce çıkar, "Not now" → 7-day cooldown.
-ATT primer'ı DEĞİL (o ad load öncesi, Sprint 6). Spec ref:
-BRAINJAMIN.md § NOTIFICATIONS & PUSH § iOS / Android push permission.
+**Sıradaki adım: `submitReport` Cloud Function + report modal UI.**
+Daily question 3-dot overflow şu an placeholder; gerçek "Report
+this question" modal'ı (reason dropdown + 200-char free-text +
+submit toast) + `submitReport` callable (per-user 10/day cap +
+`(userId, questionId)` uniqueness + "inappropriate_content"
+reason'da Mert'e immediate FCM push) implement edilecek. Spec ref:
+BRAINJAMIN.md § REPORTING & USER MODERATION.
 
-**Sonra:** `submitReport` CF + report modal UI (Daily overflow şu an
-placeholder), sonra Self-Test 25-Q loop (Sprint 2'nin kalan en büyük
-parçası).
+**Sonra:** Self-Test 25-Q loop (Sprint 2'nin kalan en büyük
+parçası: kategori picker + 25-soru loop + 10-sec timer +
+`self_test_leaderboard/{categoryId}_{weekKey}` +
+`used_questions/{uid}/seen/{qId}` dedup + Self-Test coach mark).
 
 ---
 
@@ -112,6 +116,23 @@ parçası).
   (timezone math).
 - **`firebase_database` Flutter dependency** confirmed for
   `.info/serverTimeOffset` access.
+- **`firestore.rules` baştan yazılmalı** — şu an sadece global
+  default-deny + Sprint 2 sonu eklenmiş `users/{uid}` self-managed
+  allowlist (fcm_token, fcm_token_updated_at, pushPrimerCooldownUntil,
+  tutorialSeen, profileNudgeHiddenUntil) var. Diğer tüm collection'lar
+  (daily_answers, usernames, users_public, arenas, arena_questions,
+  arena_participants, duels, duel_questions, duel_queue, tournaments,
+  tournament_sessions, live_tournaments, live_participants,
+  live_questions, live_results, self_test_sessions,
+  self_test_leaderboard, daily_questions, questions_public, embeddings,
+  ai_cache, used_questions, leaderboards, achievements,
+  deleted_accounts, notifications, push_queue, reports, blocked_terms,
+  category_rotation, session_secrets, app_settings, ai_config,
+  arena_config, admin_metrics, admin_broadcast_log, legal_docs)
+  tamamen kapalı. Spec ref: BRAINJAMIN.md § DATA MODEL + § SECURITY
+  MODEL. Sprint 5 öncesi (ideal: Sprint 3 başında, Arena/Duel
+  açılmadan) tek seferde yazılıp deploy edilmeli; aksi halde Sprint
+  3+ feature'ları çalışmaz.
 
 ### Trademark
 - **Trademark check on "Brainjamin"** — invented compound word, low
