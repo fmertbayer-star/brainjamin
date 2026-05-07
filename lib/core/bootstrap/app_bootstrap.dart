@@ -9,6 +9,7 @@ import '../../firebase_options.dart';
 import '../services/auth_service.dart';
 import '../services/onboarding_state_service.dart';
 import '../services/push_permission_service.dart';
+import '../services/push_primer_service.dart';
 import '../services/server_time_service.dart';
 
 /// Result of [bootstrapBrainjamin] — onboarding flags pre-loaded for sync startup.
@@ -49,6 +50,13 @@ Future<BootstrapResult> bootstrapBrainjamin() async {
   } catch (e, stackTrace) {
     debugPrint(
       '[bootstrapBrainjamin] BrainjaminAuthService.ensureSignedIn failed: $e\n$stackTrace',
+    );
+  }
+  try {
+    await PushPrimerService.captureTokenIfAuthorized();
+  } catch (e, stackTrace) {
+    debugPrint(
+      '[bootstrapBrainjamin] PushPrimerService.captureTokenIfAuthorized failed: $e\n$stackTrace',
     );
   }
 

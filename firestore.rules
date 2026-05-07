@@ -54,6 +54,29 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly([
+          'fcm_token',
+          'fcm_token_updated_at',
+          'pushPrimerCooldownUntil',
+          'tutorialSeen',
+          'profileNudgeHiddenUntil'
+        ]);
+      allow update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'fcm_token',
+          'fcm_token_updated_at',
+          'pushPrimerCooldownUntil',
+          'tutorialSeen',
+          'profileNudgeHiddenUntil'
+        ]);
+      allow delete: if false;
+    }
+
     // Default deny for every other path. Each new collection gets
     // its own match block when its feature ships.
     match /{document=**} {

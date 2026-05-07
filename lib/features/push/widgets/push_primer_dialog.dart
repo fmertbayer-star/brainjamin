@@ -29,7 +29,7 @@ final class PushPrimerDialog {
     }
 
     final l10n = AppLocalizations.of(context);
-    final accepted = await showDialog<bool>(
+    final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
@@ -48,7 +48,7 @@ final class PushPrimerDialog {
       ),
     );
 
-    if (accepted == true) {
+    if (result == true) {
       await PushPrimerService.requestAndCaptureToken();
     }
   }

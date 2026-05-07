@@ -24,7 +24,6 @@ final class PushPrimerService {
       case AuthorizationStatus.provisional:
         return false;
       case AuthorizationStatus.notDetermined:
-      case AuthorizationStatus.ephemeral:
         break;
     }
 
@@ -41,7 +40,10 @@ final class PushPrimerService {
       return true;
     }
     final now = ServerTimeService.now();
-    return !now.isBefore(cooldownUntil);
+    if (now.isBefore(cooldownUntil)) {
+      return false;
+    }
+    return true;
   }
 
   static Future<void> writeCooldown() async {
@@ -86,16 +88,37 @@ final class PushPrimerService {
         return status;
       }
 
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        _userFieldFcmToken: token,
-        _userFieldFcmTokenUpdatedAt: FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      await _writeTokenToFirestore(user, token);
     } catch (error, stackTrace) {
       debugPrint('[PushPrimerService] token capture failed: $error');
       debugPrint(stackTrace.toString());
     }
 
     return status;
+  }
+
+  static Future<void> captureTokenIfAuthorized() async {
+    try {
+      final status = await PushPermissionService.getCurrentStatus();
+      if (status != AuthorizationStatus.authorized &&
+          status != AuthorizationStatus.provisional) {
+        return;
+      }
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return;
+      }
+
+      final token = await FirebaseMessaging.instance.getToken();
+      if (token == null) {
+        return;
+      }
+
+      await _writeTokenToFirestore(user, token);
+    } catch (_) {
+      return;
+    }
   }
 
   static Future<DateTime?> _readAnonymousCooldown() async {
@@ -115,5 +138,12 @@ final class PushPrimerService {
       return value.toDate();
     }
     return null;
+  }
+
+  static Future<void> _writeTokenToFirestore(User user, String token) async {
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      _userFieldFcmToken: token,
+      _userFieldFcmTokenUpdatedAt: FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 }

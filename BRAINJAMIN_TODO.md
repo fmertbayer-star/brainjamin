@@ -26,7 +26,7 @@ kapanan işler:
   forgive subtext + first-entry coach mark (persistence: Firestore
   permanent / SharedPreferences anonymous) + 3-dot overflow menu
   placeholder. Chrome smoke 7-step end-to-end doğrulandı.
-- FCM client scaffolding canlıda (commit `<COMMIT_HASH>`):
+- FCM client scaffolding canlıda (commit `5faa2f6`):
   `firebase_messaging` ^15.2.10 pubspec'e eklendi, iOS
   `aps-environment=development` + `UIBackgroundModes` +
   `UNUserNotificationCenter` delegate wiring, Android
