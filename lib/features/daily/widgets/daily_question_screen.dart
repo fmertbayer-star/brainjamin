@@ -5,6 +5,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../push/widgets/push_primer_dialog.dart';
 import '../data/daily_question_service.dart';
 import '../state/daily_question_controller.dart';
 import 'daily_overflow_menu.dart';
@@ -41,6 +42,13 @@ class _DailyQuestionScreenState extends State<DailyQuestionScreen> {
       _ownsController = true;
     }
     _controller.addListener(_onControllerUpdated);
+    _controller.onSubmitSuccess = () {
+      if (!mounted) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        PushPrimerDialog.showIfNeeded(context);
+      });
+    };
     if (_ownsController) {
       _controller.init();
     }
@@ -49,6 +57,7 @@ class _DailyQuestionScreenState extends State<DailyQuestionScreen> {
   @override
   void dispose() {
     _controller.removeListener(_onControllerUpdated);
+    _controller.onSubmitSuccess = null;
     if (_ownsController) {
       _controller.dispose();
     }

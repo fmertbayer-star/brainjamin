@@ -37,6 +37,7 @@ class DailyQuestionController extends ChangeNotifier {
 
   bool _isSubmitting = false;
   bool get isSubmitting => _isSubmitting;
+  VoidCallback? onSubmitSuccess;
 
   String? _errorCode;
   String? get errorCode => _errorCode;
@@ -99,6 +100,9 @@ class DailyQuestionController extends ChangeNotifier {
     } finally {
       _isSubmitting = false;
       notifyListeners();
+      if (_status == DailyQuestionStatus.answered) {
+        onSubmitSuccess?.call();
+      }
     }
   }
 }
