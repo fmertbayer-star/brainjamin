@@ -9,6 +9,7 @@ import type {Difficulty} from "./shared/difficulty";
 import {isDifficulty} from "./shared/difficulty";
 import {AI_SECRETS} from "./shared/secrets";
 import {selectDailyQuestion} from "./callables/selectDailyQuestion";
+import {submitDailyAnswer} from "./callables/submitDailyAnswer";
 
 if (admin.apps.length === 0) {
   admin.initializeApp();
@@ -94,3 +95,4 @@ export const generateQuestions = onCall(
 );
 
 export {selectDailyQuestion};
+export {submitDailyAnswer};
