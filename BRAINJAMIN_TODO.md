@@ -10,36 +10,25 @@ the codebase itself (`functions/src/index.ts`, `lib/features/**`,
 
 ## NEXT UP — Active Thread
 
-**Mid-work (SESSION END blokajı)** — Yerelde **commit edilmemiş** üretim
-kodu + untracked tanılama scriptleri var; `BRAINJAMIN_SESSION_FLOW.md`
-PART 4: önce **(a)/(b)/(c)** sınıflandırma → üretim kodu **ayrı commit**
-→ ardından `session-end` TODO commit'i.
+**Sprint 2 — Daily Question, mid-thread.** `selectDailyQuestion`
+read-side canlıda doğrulandı (commit `d4656ac`): server-authoritative
+dateKey + lazy `daily_questions/{dateKey}` create + transaction +
+shuffle snapshot + anti-cheat. Smoke test idempotent, iki çağrı aynı
+qId döndürdü.
 
-**Net sıra:**
+**Sıradaki adım: `submitDailyAnswer` CF.** Cevap kaydı +
+correct/wrong eval + XP awarding (50 doğru / 10 yanlış) + streak
+update (1-day weekly forgive logic, local-Monday reset, server-
+anchored) + `daily_answers/{uid}_{dateKey}` write. `used_questions`
+write zaten `selectDailyQuestion` tarafında olduğundan tekrar yazılmaz.
+Anonymous user da streak + XP biriktirir (leaderboard hariç).
 
-1. **`functions/src/shared/embeddings.ts` + `pipeline.ts`** — semantik
-   dedup: zengin `buildEmbedText` (Q+A+ seçenekler) +
-   **`DEDUP_THRESHOLD = 0.88`**. Lint/build yeşildi; **`git add` /
-   commit** Mert/Cursor sonra → **`firebase deploy --only functions`**
-   (callable yeniden yükle).
+**Sonra:** Daily Question Flutter UI (Sprint 2 client-side ilk parçası),
+ardından Self-Test 25-Q loop'una geçiş.
 
-2. **`functions/scripts/*.mjs` (untracked)** — örn. `checkPool`,
-   `deleteOldPilot`, `diagnoseDedup`, `dump*`, `syntheticDedupTest`,
-   `wipePool`, `runPilot.mjs`: SESSION_FLOW **(b)** — commit mi, çöp
-   mü, `.gitignore` mu Mert seçer ((b) uyarısı: "for safety commit"
-   yapma).
-
-3. **`generateQuestions` prod pilot** — kod commit + deploy sonrası
-   `node functions/scripts/runPilot.mjs` ile yeniden doğrulama.
-
-**`main`'de kayıtlı (önceki Cursor/Mert döngüsü):** `e646439`
-SESSION_FLOW debrief, `06d4cb1` CONTEXT § DESIGN (Figma → Claude →
-Cursor).
-
-**Pilot sonrası hatırlatma:** Sprint 6 öncesi `generateQuestions` admin
-gate, Flutter `categories.dart` mirror, 4k seed batch beklemede.
-
-Non-blocking: `pipeline.ts` ~469 satır; `firebase-functions` ^6.6.0 pinli.
+**Tech debt blokajı yok** — `flagged` backfill P1'e log'landı
+(aşağıda), Sprint 4 öncesi tamamlanmalı, şu an `selectDailyQuestion`
+in-memory fallback'i ile production stabil.
 
 ---
 
@@ -128,6 +117,23 @@ Non-blocking: `pipeline.ts` ~469 satır; `firebase-functions` ^6.6.0 pinli.
   ships with `(category, flagged, lastShownAt)` composite index for
   `questions_public` from V1 (per BRAINJAMIN.md § Sharding plan Stage
   1). Zero benefit at Year 1 scale, zero cost; ready when needed.
+
+### Backend tech debt
+- **`questions_public.flagged` field backfill** — mevcut pool docs'larında
+  `flagged` field'ı yok; `selectDailyQuestion` smoke test sırasında
+  `where('flagged', '==', false).limit(50)` 0 sonuç döndü, in-memory
+  fallback ile geçildi. Sprint 4 tournament engine'i öncesinde
+  tamamlanmalı:
+  1. `pipeline.ts` yeni soru yazımında `flagged: false` default set
+     ediyor mu doğrula; etmiyor ise ekle.
+  2. Mevcut `questions_public` docs'larına tek seferlik backfill script'i
+     (`flagged: false` default).
+  3. Backfill teyit edildikten sonra `selectDailyQuestion`'daki
+     in-memory fallback bloğu kaldırılır (clean primary query path).
+- **`mcqShuffle` util doc sync** — BRAINJAMIN.md § CLOUD FUNCTIONS §
+  Internal modules listesinde `mcqShuffle` zaten yer alıyor; commit
+  `d4656ac` ile `functions/src/shared/mcqShuffle.ts` artık gerçekten
+  var. Doc tarafında ek aksiyon yok, sadece teyit notu.
 
 ### Marketing / ASO
 - **App Store keyword research** — ASO research targeting EN search
