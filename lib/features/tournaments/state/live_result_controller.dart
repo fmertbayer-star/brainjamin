@@ -2,9 +2,24 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../data/live_question_data.dart';
 import '../data/live_result.dart';
 import '../data/live_tournament.dart';
 import '../services/live_tournament_service.dart';
+
+/// Matches [TournamentCard] / tournament list category labels (snake_case → Title Case).
+String _liveCategoryDisplayTitle(String categoryId) {
+  if (categoryId.isEmpty) {
+    return '?';
+  }
+  return categoryId
+      .split('_')
+      .map(
+        (w) =>
+            w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}',
+      )
+      .join(' ');
+}
 
 enum LiveResultPhase {
   loading,
@@ -42,6 +57,44 @@ class LiveResultController extends ChangeNotifier {
   LiveResult? _myResult;
   LiveResult? get myResult => _myResult;
 
+  List<LiveQuestionData> _liveQuestions = const [];
+  bool _liveQuestionsLoading = false;
+  bool _liveQuestionsFetchStarted = false;
+
+  /// True while [fetchAllQuestions] is in flight for this result view.
+  bool get liveQuestionsLoading => _liveQuestionsLoading;
+
+  Map<String, ({int correct, int total})> _categoryStats = {};
+  Map<String, ({int correct, int total})> get categoryStats => _categoryStats;
+
+  /// Per-category rows sorted by total descending, then display name A–Z.
+  List<({String categoryId, int correct, int total})> get categoryAccuracyRows {
+    final entries = _categoryStats.entries
+        .map(
+          (e) => (
+            categoryId: e.key,
+            correct: e.value.correct,
+            total: e.value.total,
+          ),
+        )
+        .toList();
+    entries.sort((a, b) {
+      final byTotal = b.total.compareTo(a.total);
+      if (byTotal != 0) {
+        return byTotal;
+      }
+      return _liveCategoryDisplayTitle(a.categoryId)
+          .compareTo(_liveCategoryDisplayTitle(b.categoryId));
+    });
+    return entries;
+  }
+
+  /// `total_answer_ms / 20 / 1000`, for scorecard copy.
+  double get avgSecondsPerQuestion {
+    final ms = _myResult?.totalAnswerMs ?? 0;
+    return ms / 20 / 1000;
+  }
+
   LiveResultPhase _phase = LiveResultPhase.loading;
   LiveResultPhase get phase => _phase;
 
@@ -65,6 +118,7 @@ class LiveResultController extends ChangeNotifier {
       return;
     }
     _myResult = result;
+    _recomputeCategoryStats();
     notifyListeners();
   }
 
@@ -81,6 +135,7 @@ class LiveResultController extends ChangeNotifier {
       _cancelFinalizeTimer();
       _phase = LiveResultPhase.ready;
       _errorMessage = null;
+      _ensureLiveQuestionsFetched();
       return;
     }
 
@@ -134,6 +189,7 @@ class LiveResultController extends ChangeNotifier {
     if (_liveDoc?.finalizedAt != null) {
       _cancelFinalizeTimer();
       _phase = LiveResultPhase.ready;
+      _ensureLiveQuestionsFetched();
       notifyListeners();
       return;
     }
@@ -153,6 +209,62 @@ class LiveResultController extends ChangeNotifier {
   void _cancelFinalizeTimer() {
     _finalizeWaitTimer?.cancel();
     _finalizeWaitTimer = null;
+  }
+
+  void _ensureLiveQuestionsFetched() {
+    if (_disposed || _liveQuestionsFetchStarted) {
+      return;
+    }
+    _liveQuestionsFetchStarted = true;
+    _liveQuestionsLoading = true;
+    unawaited(_loadLiveQuestions());
+  }
+
+  Future<void> _loadLiveQuestions() async {
+    try {
+      final list = await _service.fetchAllQuestions(ltId);
+      if (_disposed) {
+        return;
+      }
+      _liveQuestions = list;
+    } on Object catch (_) {
+      if (!_disposed) {
+        _liveQuestions = const [];
+      }
+    } finally {
+      if (!_disposed) {
+        _liveQuestionsLoading = false;
+        _recomputeCategoryStats();
+        notifyListeners();
+      }
+    }
+  }
+
+  void _recomputeCategoryStats() {
+    if (_liveQuestions.isEmpty) {
+      _categoryStats = {};
+      return;
+    }
+    final answers = _myResult?.rawAnswers ?? const <LiveRawAnswer>[];
+    final selectedByQIndex = <int, int?>{
+      for (final a in answers) a.qIndex: a.selectedIndex,
+    };
+    final map = <String, ({int correct, int total})>{};
+    for (final q in _liveQuestions) {
+      final ci = q.correctIndex;
+      if (ci == null) {
+        continue;
+      }
+      final catKey = q.category.isEmpty ? '?' : q.category;
+      final prev = map[catKey] ?? (correct: 0, total: 0);
+      final sel = selectedByQIndex[q.qIndex];
+      final ok = sel != null && sel == ci;
+      map[catKey] = (
+        correct: prev.correct + (ok ? 1 : 0),
+        total: prev.total + 1,
+      );
+    }
+    _categoryStats = map;
   }
 
   /// After [LiveResultPhase.timeout] — restarts the 90s wait while streams stay open.

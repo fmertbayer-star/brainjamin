@@ -1,5 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// One submitted answer row stored under [LiveResult.rawAnswers].
+class LiveRawAnswer {
+  const LiveRawAnswer({
+    required this.qIndex,
+    required this.selectedIndex,
+    required this.submittedAtMs,
+  });
+
+  final int qIndex;
+  final int? selectedIndex;
+  final int submittedAtMs;
+}
+
 /// User row under `live_results/{ltId}/users/{uid}`.
 class LiveResult {
   const LiveResult({
@@ -11,6 +24,7 @@ class LiveResult {
     required this.xpGrantedAt,
     required this.scored,
     required this.submittedAt,
+    this.rawAnswers = const [],
   });
 
   final String uid;
@@ -21,6 +35,7 @@ class LiveResult {
   final DateTime? xpGrantedAt;
   final bool scored;
   final DateTime submittedAt;
+  final List<LiveRawAnswer> rawAnswers;
 
   factory LiveResult.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> doc,
@@ -72,6 +87,48 @@ class LiveResult {
         subRaw.toDate() :
         DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toLocal();
 
+    final rawAnswers = <LiveRawAnswer>[];
+    final rawList = data['raw_answers'];
+    if (rawList is List) {
+      for (final e in rawList) {
+        if (e is! Map) {
+          continue;
+        }
+        final row = Map<String, dynamic>.from(e);
+        final qiRaw = row['q_index'];
+        final qIndex = qiRaw is int ?
+            qiRaw :
+            qiRaw is num ?
+                qiRaw.toInt() :
+                null;
+        if (qIndex == null) {
+          continue;
+        }
+        final siRaw = row['selected_index'];
+        int? selectedIndex;
+        if (siRaw == null) {
+          selectedIndex = null;
+        } else if (siRaw is int) {
+          selectedIndex = siRaw;
+        } else if (siRaw is num) {
+          selectedIndex = siRaw.toInt();
+        }
+        final samRaw = row['submitted_at_ms'];
+        final submittedAtMs = samRaw is int ?
+            samRaw :
+            samRaw is num ?
+                samRaw.toInt() :
+                0;
+        rawAnswers.add(
+          LiveRawAnswer(
+            qIndex: qIndex,
+            selectedIndex: selectedIndex,
+            submittedAtMs: submittedAtMs,
+          ),
+        );
+      }
+    }
+
     return LiveResult(
       uid: data['uid'] as String? ?? doc.id,
       correctCount: correctCount,
@@ -81,6 +138,7 @@ class LiveResult {
       xpGrantedAt: xpGrantedAt,
       scored: data['scored'] == true,
       submittedAt: submittedAt,
+      rawAnswers: rawAnswers,
     );
   }
 }

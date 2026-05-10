@@ -127,6 +127,29 @@ final class LiveTournamentService {
     });
   }
 
+  /// All rows under `live_questions/{ltId}/q/*` (one-shot; sorted by [LiveQuestionData.qIndex]).
+  Future<List<LiveQuestionData>> fetchAllQuestions(String ltId) async {
+    final trimmed = ltId.trim();
+    if (trimmed.isEmpty) {
+      return const [];
+    }
+    final snap = await _firestore
+        .collection('live_questions')
+        .doc(trimmed)
+        .collection('q')
+        .get();
+    final out = <LiveQuestionData>[];
+    for (final doc in snap.docs) {
+      try {
+        out.add(LiveQuestionData.fromFirestore(doc));
+      } on Object catch (_) {
+        // Skip malformed docs.
+      }
+    }
+    out.sort((a, b) => a.qIndex.compareTo(b.qIndex));
+    return out;
+  }
+
   /// `live_questions/{ltId}/q/{qIndex}` — matches Cloud Functions `runLiveTournament`.
   Stream<LiveQuestionData?> watchActiveQuestion(String ltId, int qIndex) {
     final trimmed = ltId.trim();

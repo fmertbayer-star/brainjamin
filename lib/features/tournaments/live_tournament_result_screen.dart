@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_colors.dart';
@@ -42,9 +43,18 @@ class _LiveTournamentResultScreenState extends State<LiveTournamentResultScreen>
     super.dispose();
   }
 
-  static String _formatAnswerSeconds(int totalAnswerMs) {
-    final sec = totalAnswerMs / 1000.0;
-    return '${sec.toStringAsFixed(1)}s';
+  /// Matches [TournamentCard] category labels (snake_case → Title Case).
+  static String _categoryDisplayTitle(String categoryId) {
+    if (categoryId.isEmpty) {
+      return '?';
+    }
+    return categoryId
+        .split('_')
+        .map(
+          (w) =>
+              w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}',
+        )
+        .join(' ');
   }
 
   static LiveTop100Entry? _top100RowForUid(LiveTournament live, String uid) {
@@ -157,6 +167,7 @@ class _LiveTournamentResultScreenState extends State<LiveTournamentResultScreen>
     LiveResultController c,
     String uid,
   ) {
+    final l10n = AppLocalizations.of(context);
     final live = c.liveDoc!;
     final my = c.myResult;
     final top10 = live.top100.take(10).toList();
@@ -173,54 +184,116 @@ class _LiveTournamentResultScreenState extends State<LiveTournamentResultScreen>
       mascotIcon = Icons.waving_hand_rounded;
     }
 
+    final avgSecStr = c.avgSecondsPerQuestion.toStringAsFixed(1);
+
+    Widget accentCard({required Widget child}) {
+      return Card(
+        color: BrainjaminColors.brandOrange.withValues(alpha: 0.08),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: child,
+        ),
+      );
+    }
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _mascotAvatar(mascotIcon, radius: 36),
-        const SizedBox(height: 16),
-        if (showHero) ...[
-          Card(
-            color: BrainjaminColors.brandOrange.withValues(alpha: 0.08),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Text(
-                    '#$rank',
-                    style: theme.textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: BrainjaminColors.brandOrangeDark,
-                    ),
+        if (my != null && my.rank != null) ...[
+          _mascotAvatar(mascotIcon, radius: 36),
+          const SizedBox(height: 16),
+          accentCard(
+            child: Column(
+              children: [
+                Text(
+                  '#$rank',
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: BrainjaminColors.brandOrangeDark,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'of $ofTotal',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: BrainjaminColors.onSurfaceMuted,
-                      fontWeight: FontWeight.w600,
-                    ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'of $ofTotal',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: BrainjaminColors.onSurfaceMuted,
+                    fontWeight: FontWeight.w600,
                   ),
-                  if (my.xpAwarded != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      '+${my.xpAwarded} XP',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: BrainjaminColors.brandOrange,
-                      ),
-                    ),
-                  ],
+                ),
+                if (my.xpAwarded != null) ...[
                   const SizedBox(height: 12),
                   Text(
-                    '${my.correctCount}/20 correct • ${_formatAnswerSeconds(my.totalAnswerMs)}',
-                    style: theme.textTheme.titleMedium,
+                    '+${my.xpAwarded} XP',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: BrainjaminColors.brandOrange,
+                    ),
                   ),
                 ],
-              ),
+              ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
         ],
+        if (my != null) ...[
+          accentCard(
+            child: Text(
+              'Correct: ${my.correctCount} / 20',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 16),
+          accentCard(
+            child: Text(
+              'Avg. ${avgSecStr}s per question',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+        accentCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.self_test_stats_category_heading,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (c.liveQuestionsLoading && c.categoryAccuracyRows.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (c.categoryAccuracyRows.isEmpty)
+                Text(
+                  '—',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: BrainjaminColors.onSurfaceMuted,
+                  ),
+                )
+              else
+                ...c.categoryAccuracyRows.map(
+                  (row) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text(
+                      '${_categoryDisplayTitle(row.categoryId)} ${row.correct}/${row.total}',
+                      style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
         Text(
           'Top 10',
           style: theme.textTheme.titleLarge?.copyWith(
@@ -249,7 +322,10 @@ class _LiveTournamentResultScreenState extends State<LiveTournamentResultScreen>
               ),
             ),
           ),
-        if (showHero && rank != null && rank > 10) ...[
+        if (my != null &&
+            showHero &&
+            rank != null &&
+            rank > 10) ...[
           const Divider(height: 32),
           Text(
             'Your rank',
