@@ -92,10 +92,21 @@ export async function generateOneQuestion(
   const attempts: AttemptLog[] = [];
   const db = getFirestore();
 
+  const recentSnap = await db
+    .collection("questions_public")
+    .where("category", "==", category)
+    .orderBy("createdAt", "desc")
+    .limit(30)
+    .get();
+  const recentStems = recentSnap.docs
+    .map((d) => d.data().question as string | undefined)
+    .filter((q): q is string => typeof q === "string" && q.length > 0);
+
   for (let attempt = 1; attempt <= MAX_ATTEMPTS_PER_QUESTION; attempt++) {
     const {systemPrompt, userPrompt} = buildGeneratorPrompt({
       category,
       difficulty,
+      recentStems,
     });
 
     let generatorResult: Awaited<ReturnType<typeof generateWithProviders>>;

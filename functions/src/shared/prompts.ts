@@ -5,6 +5,7 @@ import {DIFFICULTY_LABELS} from "./difficulty";
 export interface GenPromptInput {
   category: Category;
   difficulty: Difficulty;
+  recentStems?: string[];
 }
 
 /**
@@ -23,7 +24,7 @@ export function buildGeneratorPrompt(input: GenPromptInput): {
       "astrological associations as factually correct within that tradition." :
       "";
 
-  const systemPrompt =
+  const baseSystemPrompt =
     "You write verifiable multiple-choice trivia for a mobile game. " +
     "Output must be valid JSON only — no markdown, no prose outside JSON.\n\n" +
     "Either return exactly one of:\n" +
@@ -47,6 +48,15 @@ export function buildGeneratorPrompt(input: GenPromptInput): {
     `- Stay strictly within category "${input.category}".\n` +
     "- Do not include an explanation field (schema has none).\n" +
     astroExtra;
+
+  const avoidBlock =
+    input.recentStems != null && input.recentStems.length > 0 ?
+      "\n\nAvoid generating questions similar to these recently generated stems " +
+      "for this category. Pick a different angle, sub-topic, or fact:\n" +
+      input.recentStems.map((stem) => `- ${stem}`).join("\n") :
+      "";
+
+  const systemPrompt = baseSystemPrompt + avoidBlock;
 
   const userPrompt =
     `Generate one question for category "${input.category}" at difficulty ` +
