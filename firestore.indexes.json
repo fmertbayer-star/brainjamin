@@ -146,6 +146,38 @@
         { "fieldPath": "correct_count", "order": "DESCENDING" },
         { "fieldPath": "submitted_at", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "arenas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "creator_id", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "arenas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "arenas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "invite_code", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "arena_id", "order": "ASCENDING" },
+        { "fieldPath": "joined_at", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

@@ -110,6 +110,11 @@ export {getClassicTournamentQuestions} from "./callables/getClassicTournamentQue
 export {submitClassicTournamentAnswers} from "./callables/submitClassicTournamentAnswers";
 export {getClassicTournamentReveal} from "./callables/getClassicTournamentReveal";
 export {getDuelLobbyStats} from "./callables/getDuelLobbyStats";
+
+// Sprint 3.5 — Arena
+export {createArena} from "./arena/createArena";
+export {joinArena} from "./arena/joinArena";
+
 export {expireDuels} from "./scheduled/expireDuels";
 export {generateClassicTournamentContent} from "./scheduled/generateClassicTournamentContent";
 export {makeClassicTournamentVisible} from "./scheduled/makeClassicTournamentVisible";
