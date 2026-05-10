@@ -12,6 +12,18 @@ export const ARENA_MIN_LEAD_MINUTES = 10;
 export const ARENA_MAX_LEAD_HOURS = 24;
 export const ARENA_QUESTION_COUNT = 10;
 
+/** Two questions per difficulty 1–5 (10 total). Used by generateArenaQuestions. */
+export const ARENA_DIFFICULTY_DISTRIBUTION: ReadonlyArray<{
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  count: number;
+}> = [
+  {difficulty: 1, count: 2},
+  {difficulty: 2, count: 2},
+  {difficulty: 3, count: 2},
+  {difficulty: 4, count: 2},
+  {difficulty: 5, count: 2},
+];
+
 export const ARENA_CUSTOM_TOPIC_MAX_LEN = 80;
 export const ARENA_CUSTOM_TOPIC_MIN_LEN = 3;
 export const ARENA_GEN_MAX_ATTEMPTS_PER_QUESTION = 5;
