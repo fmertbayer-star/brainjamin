@@ -257,41 +257,34 @@ class _LiveTournamentQuizScreenState extends State<LiveTournamentQuizScreen> {
     final selected = c.localSelectionsSnapshot[qIndex];
     final revealing = c.phase == LiveQuizPhase.revealing;
 
-    return Column(
-      children: [
-        Expanded(
-          flex: 2,
-          child: Center(
-            child: Text(
-              text,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-                height: 1.25,
-              ),
-              textAlign: TextAlign.center,
+    return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: [
+          Text(
+            text,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              height: 1.25,
             ),
+            textAlign: TextAlign.center,
           ),
-        ),
-        Expanded(
-          flex: 3,
-          child: ListView.separated(
-            itemCount: 4,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (ctx, i) {
-              final label = i < options.length ? options[i] : '';
-              return _OptionButton(
-                label: label,
-                index: i,
-                selected: selected == i,
-                revealing: revealing,
-                correctIndex: correct,
-                userSelected: selected,
-                onTap: () => c.selectOption(i),
-              );
-            },
-          ),
-        ),
-      ],
+          const SizedBox(height: 24),
+          for (int i = 0; i < 4; i++) ...[
+            if (i > 0) const SizedBox(height: 10),
+            _OptionButton(
+              label: i < options.length ? options[i] : '',
+              index: i,
+              selected: selected == i,
+              revealing: revealing,
+              correctIndex: correct,
+              userSelected: selected,
+              onTap: () => c.selectOption(i),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
