@@ -157,7 +157,9 @@ async function finalizeOneTournament(
 
     if (ranked.length === 0 && totalParticipants > 0) {
       logger.info(
-        `[finalizeLiveTournament] ltId=${ltId} no scored results yet (total_participants=${totalParticipants}); releasing lease without finalize, will retry next tick`,
+        `[finalizeLiveTournament] ltId=${ltId} no scored results yet ` +
+        "(total_participants=" + totalParticipants +
+        "); releasing lease without finalize, will retry next tick",
       );
       await releaseLeaseAborted(
         db,
