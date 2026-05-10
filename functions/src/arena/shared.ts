@@ -2,6 +2,7 @@
  * Arena (Sprint 3.5a) — constants and validation helpers.
  */
 
+import type {Timestamp} from "firebase-admin/firestore";
 import {HttpsError} from "firebase-functions/v2/https";
 
 import {isCategory} from "../shared/categories";
@@ -10,6 +11,31 @@ export const ARENA_MAX_PER_DAY = 3;
 export const ARENA_MIN_LEAD_MINUTES = 10;
 export const ARENA_MAX_LEAD_HOURS = 24;
 export const ARENA_QUESTION_COUNT = 10;
+
+export const ARENA_CUSTOM_TOPIC_MAX_LEN = 80;
+export const ARENA_CUSTOM_TOPIC_MIN_LEN = 3;
+export const ARENA_GEN_MAX_ATTEMPTS_PER_QUESTION = 5;
+export const ARENA_GEN_INTRA_DEDUP_THRESHOLD = 0.88;
+
+export interface ArenaQuestionDoc {
+  arena_id: string;
+  q_index: number;
+  question: string;
+  options: [string, string, string, string];
+  correct_index: number;
+  difficulty: number;
+  source_type: "preset" | "custom_topic";
+  source_question_id?: string;
+  generator_provider?: string;
+  verifier_provider?: string;
+  created_at: Timestamp;
+}
+
+export interface ArenaViabilityResult {
+  viable: boolean;
+  reason?: string;
+  suggestion?: string;
+}
 
 export type ArenaMode = "list" | "battle";
 export type ArenaSourceType = "preset" | "custom_topic";

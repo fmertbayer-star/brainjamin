@@ -2,6 +2,13 @@ import type {Category} from "./categories";
 import type {Difficulty} from "./difficulty";
 import {DIFFICULTY_LABELS} from "./difficulty";
 
+/** Shared safety/ratings language for generator + viability prompts. */
+const PROMPT_CONTENT_STANDARDS =
+  "\n\nContent standards:\n" +
+  "- Do not glamorize alcohol, tobacco, illegal drugs, or substance misuse.\n" +
+  "- No sexual, violent, hateful, or extremist content.\n" +
+  "- No medical advice.\n";
+
 export interface GenPromptInput {
   category: Category;
   difficulty: Difficulty;
@@ -63,6 +70,108 @@ export function buildGeneratorPrompt(input: GenPromptInput): {
     `${input.difficulty} (label: ${diffLabel}). ` +
     `Echo "category" as exactly "${input.category}" and "difficulty" as ` +
     `the integer ${input.difficulty}.`;
+
+  return {systemPrompt, userPrompt};
+}
+
+/**
+ * Assess whether a user-submitted custom topic can sustain ~10 quality MCQs.
+ */
+export function buildCustomTopicViabilityPrompt(topic: string): {
+  systemPrompt: string;
+  userPrompt: string;
+} {
+  const systemPrompt =
+    "You assess trivia quiz topics for a mobile game. Output valid JSON only — " +
+    "no markdown, no prose outside JSON.\n\n" +
+    "Schema: {\"viable\": boolean, \"reason\": string, \"suggestion\": string|null}\n" +
+    "- \"reason\": one concise English sentence explaining your assessment.\n" +
+    "- \"suggestion\": if viable is false, a brief alternative wording or related " +
+    "topic the host could try; if viable is true, use null.\n" +
+    "- If the topic is empty, gibberish, too vague, too narrow, offensive, or " +
+    "cannot support ~10 distinct fact-based multiple-choice questions, set " +
+    "viable to false.\n" +
+    PROMPT_CONTENT_STANDARDS;
+
+  const userPrompt =
+    `Topic to assess:\n"${topic}"\n\n` +
+    "Return the JSON verdict.";
+
+  return {systemPrompt, userPrompt};
+}
+
+export interface CustomTopicGenPromptInput {
+  topic: string;
+  difficulty: Difficulty;
+  recentStems?: string[];
+}
+
+/**
+ * Generator for Arena custom-topic runs — same JSON shape as buildGeneratorPrompt,
+ * but scoped by free-form topic; echo category as \"custom_topic\" in JSON.
+ */
+export function buildCustomTopicGeneratorPrompt(
+  input: CustomTopicGenPromptInput,
+): {
+  systemPrompt: string;
+  userPrompt: string;
+} {
+  const diffLabel = DIFFICULTY_LABELS[input.difficulty];
+
+  const baseSystemPrompt =
+    "You write verifiable multiple-choice trivia for a mobile game. " +
+    "Output must be valid JSON only — no markdown, no prose outside JSON.\n\n" +
+    "Either return exactly one of:\n" +
+    "(1) {\"refused\": true, \"reason\": \"<short>\"}\n" +
+    "OR\n" +
+    "(2) {\"question\": string, \"options\": [string, string, string, string], " +
+    "\"correctIndex\": 0|1|2|3, \"category\": \"custom_topic\", " +
+    "\"difficulty\": <number>}\n\n" +
+    "Rules:\n" +
+    "- US English spelling.\n" +
+    "- Exactly four options; the marked correct answer must be unambiguously " +
+    "true; three distractors plausible but verifiably incorrect.\n" +
+    "- If unsure of any date, figure, name, or source, do NOT generate. " +
+    "Return {\"refused\": true, \"reason\": \"<short>\"} instead.\n" +
+    "- Self-contained — no images, audio, or external context.\n" +
+    "- Avoid current-events questions whose answer may have shifted in the " +
+    "last 12 months.\n" +
+    "- Avoid politically inflammatory framing.\n" +
+    "- Difficulty is " +
+    String(input.difficulty) +
+    " (" +
+    diffLabel +
+    "): 1=very_easy … " +
+    "5=very_hard.\n" +
+    "- Stay on-topic for the user's topic — avoid drifting to unrelated subjects.\n" +
+    "- Echo \"category\" as exactly the string custom_topic and \"difficulty\" as " +
+    "the integer " +
+    String(input.difficulty) +
+    ".\n" +
+    "- Do not include an explanation field (schema has none).\n" +
+    PROMPT_CONTENT_STANDARDS;
+
+  const avoidBlock =
+    input.recentStems != null && input.recentStems.length > 0 ?
+      "\n\nAvoid generating questions similar to these recently generated stems " +
+      "for this topic. Pick a different angle, sub-topic, or fact:\n" +
+      input.recentStems.map((stem) => `- ${stem}`).join("\n") :
+      "";
+
+  const systemPrompt = baseSystemPrompt + avoidBlock;
+
+  const userPrompt =
+    "Generate one question for topic \"" +
+    input.topic +
+    "\" at difficulty " +
+    String(input.difficulty) +
+    " (label: " +
+    diffLabel +
+    "). " +
+    "Echo \"category\" as exactly \"custom_topic\" and \"difficulty\" as " +
+    "the integer " +
+    String(input.difficulty) +
+    ".";
 
   return {systemPrompt, userPrompt};
 }

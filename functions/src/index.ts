@@ -114,6 +114,8 @@ export {getDuelLobbyStats} from "./callables/getDuelLobbyStats";
 // Sprint 3.5 — Arena
 export {createArena} from "./arena/createArena";
 export {joinArena} from "./arena/joinArena";
+export {checkCustomTopicViability} from "./arena/checkCustomTopicViability";
+export {generateArenaQuestions} from "./arena/generateArenaQuestions";
 
 export {expireDuels} from "./scheduled/expireDuels";
 export {generateClassicTournamentContent} from "./scheduled/generateClassicTournamentContent";
