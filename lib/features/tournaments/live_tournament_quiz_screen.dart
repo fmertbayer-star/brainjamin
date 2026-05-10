@@ -141,7 +141,7 @@ class _LiveTournamentQuizScreenState extends State<LiveTournamentQuizScreen> {
                     Expanded(child: _buildMainBody(context, theme, c)),
                     const SizedBox(height: 12),
                     Text(
-                      'Players in lobby: ${c.liveDoc?.totalParticipants ?? 0}',
+                      'Players: ${c.liveDoc?.totalParticipants ?? 0}',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: BrainjaminColors.onSurfaceMuted,
                       ),
