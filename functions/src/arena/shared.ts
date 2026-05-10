@@ -29,6 +29,13 @@ export const ARENA_CUSTOM_TOPIC_MIN_LEN = 3;
 export const ARENA_GEN_MAX_ATTEMPTS_PER_QUESTION = 5;
 export const ARENA_GEN_INTRA_DEDUP_THRESHOLD = 0.88;
 
+/** XP grant tiers when an arena finalizes (Sprint 3.5c). */
+export const ARENA_XP_BY_RANK = {
+  rank1: 100,
+  rank2to3: 50,
+  rankRest: 25,
+} as const;
+
 export interface ArenaQuestionDoc {
   arena_id: string;
   q_index: number;

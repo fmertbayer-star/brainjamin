@@ -197,6 +197,15 @@
         { "fieldPath": "arena_id", "order": "ASCENDING" },
         { "fieldPath": "joined_at", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "arena_id", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "total_remaining_ms", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

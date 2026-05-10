@@ -1291,5 +1291,149 @@
   "report_modal_error_generic": "Couldn't submit right now. Try again.",
   "@report_modal_error_generic": {
     "description": "Generic report submission error"
-  }
+  },
+  "arena_screen_create_cta": "Create arena",
+  "arena_screen_join_cta": "Join with code",
+  "arena_create_step_basics": "Step 1 of 3 — Basics",
+  "arena_create_step_details": "Step 2 of 3 — Details",
+  "arena_create_step_summary": "Step 3 of 3 — Review",
+  "arena_create_mode_list": "List Arena",
+  "arena_create_mode_battle": "Battle Arena",
+  "arena_create_mode_battle_disabled": "Coming soon",
+  "arena_create_name_hint": "Arena name (optional)",
+  "arena_create_next": "Next",
+  "arena_create_back": "Back",
+  "arena_create_category_preset": "Pre-set category",
+  "arena_create_category_custom": "Custom topic",
+  "arena_create_topic_hint": "Topic (3–80 characters)",
+  "arena_create_topic_check_viability": "Check topic",
+  "arena_create_topic_viable": "Looks good — Brainjamin can work with this.",
+  "arena_create_topic_not_viable": "Hm, this might be tough — try {suggestion}",
+  "@arena_create_topic_not_viable": {
+    "placeholders": {
+      "suggestion": {
+        "type": "String"
+      }
+    }
+  },
+  "arena_create_topic_not_viable_no_suggestion": "Hm, this might be tough — try another wording.",
+  "arena_create_schedule_title": "Start time",
+  "arena_create_creating": "Creating your arena…",
+  "arena_create_generating": "Brainjamin is writing your questions…",
+  "arena_create_create_button": "Create arena",
+  "arena_pool_insufficient_message": "This category doesn't have enough variety yet — try a different one.",
+  "arena_create_schedule_invalid": "Pick a start time at least 10 minutes from now and within the next 24 hours.",
+  "arena_create_generating_retry": "Try again",
+  "arena_invite_share_message": "You're invited to a Brainjamin arena. Code: {code} (V2 link: https://brainjamin.com/arena/{code})",
+  "@arena_invite_share_message": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "arena_invite_missing_params": "Missing arena details. Return home and try again.",
+  "arena_invite_share_title": "Invite friends",
+  "arena_invite_continue_lobby": "Continue to lobby",
+  "arena_invite_share_action": "Share",
+  "arena_join_title": "Join arena",
+  "arena_join_label": "Enter invite code",
+  "arena_join_submit": "Join",
+  "arena_join_error_empty": "Enter an invite code.",
+  "arena_join_error_generic": "Couldn't join this arena. Try again.",
+  "arena_join_error_not_found": "No arena matches that code.",
+  "arena_join_error_closed": "This arena isn't accepting players anymore.",
+  "arena_join_error_auth": "Sign in to join.",
+  "arena_lobby_title": "Arena lobby",
+  "arena_lobby_untitled": "Untitled arena",
+  "arena_lobby_starting_in": "Starting in {time}",
+  "@arena_lobby_starting_in": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "arena_lobby_participants": "Players ({count})",
+  "@arena_lobby_participants": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "arena_lobby_anonymous": "Anonymous Player",
+  "arena_lobby_solo_hint": "You're flying solo — Brainjamin's still here for you.",
+  "arena_lobby_invite_code_label": "Invite code",
+  "arena_lobby_copy": "Copy",
+  "arena_lobby_leave": "Leave lobby",
+  "arena_quiz_title": "Arena quiz",
+  "arena_quiz_progress": "Question {current} of {total}",
+  "@arena_quiz_progress": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "arena_quiz_timer": "{seconds}s",
+  "@arena_quiz_timer": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "arena_quiz_loading": "Loading questions…",
+  "arena_quiz_error_back": "Back",
+  "arena_quiz_submitting": "Submitting…",
+  "arena_quiz_submit_error": "Couldn't submit answers.",
+  "arena_quiz_retry": "Retry",
+  "arena_quiz_battle_soon_title": "Battle Arena coming soon",
+  "arena_quiz_battle_soon_body": "Hang tight — eliminate rounds ship in a later sprint.",
+  "arena_result_title": "Arena results",
+  "arena_result_waiting": "Waiting for other players…",
+  "arena_result_your_rank": "Your rank: #{rank}",
+  "@arena_result_your_rank": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "arena_result_xp_earned": "+{xp} XP",
+  "@arena_result_xp_earned": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "arena_result_new_arena_cta": "New arena",
+  "arena_result_home": "Home",
+  "arena_overflow_report": "Report this question",
+  "duel_overflow_report": "Report this question",
+  "arena_category_history": "History",
+  "arena_category_geography": "Geography",
+  "arena_category_movies_tv": "Movies & TV",
+  "arena_category_music": "Music",
+  "arena_category_sports": "Sports",
+  "arena_category_science": "Science",
+  "arena_category_technology": "Technology",
+  "arena_category_literature": "Literature",
+  "arena_category_art": "Art",
+  "arena_category_food_drink": "Food & drink",
+  "arena_category_animals": "Animals",
+  "arena_category_nature": "Nature",
+  "arena_category_pop_culture": "Pop culture",
+  "arena_category_mythology": "Mythology",
+  "arena_category_video_games": "Video games",
+  "arena_category_fashion": "Fashion",
+  "arena_category_astrology": "Astrology",
+  "arena_category_health": "Health",
+  "arena_category_space": "Space",
+  "arena_category_world_capitals": "World capitals"
 }

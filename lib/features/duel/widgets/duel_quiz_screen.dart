@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/services/duel_service.dart';
 
+import 'duel_overflow_menu.dart';
+
 class DuelQuizScreen extends StatefulWidget {
   const DuelQuizScreen({super.key});
 
@@ -16,11 +18,13 @@ class _DuelQuestionView {
     required this.question,
     required this.options,
     required this.correctIndex,
+    this.questionId,
   });
 
   final String question;
   final List<String> options;
   final int? correctIndex;
+  final String? questionId;
 }
 
 class _DraftAnswer {
@@ -113,6 +117,7 @@ class _DuelQuizScreenState extends State<DuelQuizScreen>
         final question = m['question'];
         final options = m['options'];
         final correctIndex = m['correctIndex'];
+        final qId = m['questionId'];
         if (question is! String || options is! List) continue;
         final parsedOptions = options.whereType<String>().toList();
         if (parsedOptions.length != 4) continue;
@@ -121,6 +126,7 @@ class _DuelQuizScreenState extends State<DuelQuizScreen>
             question: question,
             options: parsedOptions,
             correctIndex: correctIndex is int ? correctIndex : null,
+            questionId: qId is String && qId.isNotEmpty ? qId : null,
           ),
         );
       }
@@ -321,9 +327,17 @@ class _DuelQuizScreenState extends State<DuelQuizScreen>
     final question = _questions[_currentIndex];
     final interceptBack = _quizInProgress;
 
+    final qForReport =
+        question.questionId ??
+        (_duelId != null ? '${_duelId!}_q$_currentIndex' : null);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.duelQuizProgress(_currentIndex + 1, _questions.length)),
+        actions: [
+          if (qForReport != null && qForReport.isNotEmpty)
+            DuelOverflowMenu(questionId: qForReport),
+        ],
       ),
       body: PopScope(
         canPop: !interceptBack,

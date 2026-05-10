@@ -2,6 +2,12 @@ import 'package:go_router/go_router.dart';
 
 import '../core/services/onboarding_flow_controller.dart';
 import '../features/arena/arena_screen.dart';
+import '../features/arena/widgets/arena_create_wizard_screen.dart';
+import '../features/arena/widgets/arena_invite_share_screen.dart';
+import '../features/arena/widgets/arena_join_code_screen.dart';
+import '../features/arena/widgets/arena_lobby_screen.dart';
+import '../features/arena/widgets/arena_quiz_screen.dart';
+import '../features/arena/widgets/arena_result_screen.dart';
 import '../features/duel/duel_screen.dart';
 import '../features/duel/widgets/duel_match_type_screen.dart';
 import '../features/duel/widgets/duel_join_code_screen.dart';
@@ -70,6 +76,38 @@ final class AppRouter {
           path: '/arena',
           name: 'arena',
           builder: (context, state) => const ArenaScreen(),
+          routes: [
+            GoRoute(
+              path: 'create',
+              name: 'arena-create',
+              builder: (context, state) => const ArenaCreateWizardScreen(),
+            ),
+            GoRoute(
+              path: 'invite-share',
+              name: 'arena-invite-share',
+              builder: (context, state) => const ArenaInviteShareScreen(),
+            ),
+            GoRoute(
+              path: 'join',
+              name: 'arena-join',
+              builder: (context, state) => const ArenaJoinCodeScreen(),
+            ),
+            GoRoute(
+              path: 'lobby',
+              name: 'arena-lobby',
+              builder: (context, state) => const ArenaLobbyScreen(),
+            ),
+            GoRoute(
+              path: 'quiz',
+              name: 'arena-quiz',
+              builder: (context, state) => const ArenaQuizScreen(),
+            ),
+            GoRoute(
+              path: 'result',
+              name: 'arena-result',
+              builder: (context, state) => const ArenaResultScreen(),
+            ),
+          ],
         ),
         GoRoute(
           path: '/duel',
