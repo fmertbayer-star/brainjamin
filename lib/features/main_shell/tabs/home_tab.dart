@@ -59,17 +59,17 @@ class _HomeTabState extends State<HomeTab> {
             SelfTestEntryCard(
               title: l10n.homeCardSelfTestTitle,
               body: l10n.homeCardSelfTestBody,
-              onTap: () => context.go('/self-test'),
+              onTap: () => context.push('/self-test'),
             ),
             QuickDuelCard(
               title: l10n.homeCardQuickDuelTitle,
               body: l10n.homeCardQuickDuelBody,
-              onTap: () => context.go('/duel'),
+              onTap: () => context.push('/duel'),
             ),
             ActiveArenasCard(
               title: l10n.homeCardActiveArenasTitle,
               body: l10n.homeCardActiveArenasBody,
-              onTap: () => context.go('/arena'),
+              onTap: () => context.push('/arena'),
             ),
             NextLiveCountdownCard(
               title: l10n.homeCardNextLiveTitle,

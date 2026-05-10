@@ -176,9 +176,255 @@
   "@mainTabLeaderboard": {
     "description": "TODO(copy) Sprint 1.4.5 tab label"
   },
+  "shellExitTitle": "Quit Brainjamin?",
+  "@shellExitTitle": {
+    "description": "Main shell Android back confirmation dialog title on Home tab"
+  },
+  "shellExitBody": "Come back soon for your next round.",
+  "@shellExitBody": {
+    "description": "Main shell Android back confirmation dialog body on Home tab"
+  },
+  "shellExitStay": "Stay",
+  "@shellExitStay": {
+    "description": "Main shell back confirmation dialog dismiss action"
+  },
+  "shellExitConfirm": "Quit",
+  "@shellExitConfirm": {
+    "description": "Main shell back confirmation dialog confirm action to close app"
+  },
   "selfTestScreenTitle": "Self-Test",
   "@selfTestScreenTitle": {
     "description": "TODO(copy) standalone /self-test AppBar"
+  },
+  "self_test_landing_title": "Self-Test",
+  "@self_test_landing_title": {
+    "description": "Self-Test landing AppBar title"
+  },
+  "self_test_start_button": "Start",
+  "@self_test_start_button": {
+    "description": "Self-Test landing primary CTA"
+  },
+  "self_test_tagline": "25 questions, 5 difficulty levels",
+  "@self_test_tagline": {
+    "description": "Self-Test landing headline above Start"
+  },
+  "self_test_caption": "10 seconds per question",
+  "@self_test_caption": {
+    "description": "Self-Test landing helper under Start"
+  },
+  "self_test_loading": "Loading questions...",
+  "@self_test_loading": {
+    "description": "Self-Test session fetch in progress"
+  },
+  "self_test_error_insufficient_pool": "Not enough questions available right now. Come back later.",
+  "@self_test_error_insufficient_pool": {
+    "description": "Self-Test failed-precondition insufficient pool"
+  },
+  "self_test_error_generic": "Something went wrong. Please try again.",
+  "@self_test_error_generic": {
+    "description": "Self-Test generic callable failure"
+  },
+  "self_test_try_again": "Try again",
+  "@self_test_try_again": {
+    "description": "Self-Test error retry button"
+  },
+  "self_test_ready_placeholder": "Ready — question loop coming next",
+  "@self_test_ready_placeholder": {
+    "description": "Transient copy until question UI ships"
+  },
+  "self_test_flow_placeholder": "More Self-Test screens coming soon.",
+  "@self_test_flow_placeholder": {
+    "description": "Transient copy for in-progress/submit/completed before full UI"
+  },
+  "self_test_question_progress": "Question {current} of {total}",
+  "@self_test_question_progress": {
+    "description": "Self-Test AppBar progress label",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "self_test_difficulty_1": "Very Easy",
+  "@self_test_difficulty_1": {
+    "description": "Self-Test difficulty label 1"
+  },
+  "self_test_difficulty_2": "Easy",
+  "@self_test_difficulty_2": {
+    "description": "Self-Test difficulty label 2"
+  },
+  "self_test_difficulty_3": "Medium",
+  "@self_test_difficulty_3": {
+    "description": "Self-Test difficulty label 3"
+  },
+  "self_test_difficulty_4": "Hard",
+  "@self_test_difficulty_4": {
+    "description": "Self-Test difficulty label 4"
+  },
+  "self_test_difficulty_5": "Very Hard",
+  "@self_test_difficulty_5": {
+    "description": "Self-Test difficulty label 5"
+  },
+  "self_test_timer_seconds": "{seconds}s",
+  "@self_test_timer_seconds": {
+    "description": "Self-Test countdown seconds suffix",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "self_test_submitting": "Submitting...",
+  "@self_test_submitting": {
+    "description": "Self-Test overlay while submitting session"
+  },
+  "self_test_loop_complete_placeholder": "Loop complete — result screen next",
+  "@self_test_loop_complete_placeholder": {
+    "description": "Placeholder until result screen ships"
+  },
+  "self_test_result_title": "Results",
+  "@self_test_result_title": {
+    "description": "Self-Test result screen AppBar title"
+  },
+  "self_test_result_subtitle": "{correct} correct out of {total}",
+  "@self_test_result_subtitle": {
+    "description": "Self-Test result score subtitle",
+    "placeholders": {
+      "correct": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "self_test_result_time": "Total time: {seconds}s",
+  "@self_test_result_time": {
+    "description": "Self-Test total time used line",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "self_test_result_week": "Week: {week}",
+  "@self_test_result_week": {
+    "description": "Self-Test ISO week label",
+    "placeholders": {
+      "week": {
+        "type": "String"
+      }
+    }
+  },
+  "self_test_result_play_again": "Play again",
+  "@self_test_result_play_again": {
+    "description": "Self-Test result primary CTA"
+  },
+  "self_test_result_home": "Back to home",
+  "@self_test_result_home": {
+    "description": "Self-Test result secondary CTA"
+  },
+  "self_test_result_unavailable": "No result available",
+  "@self_test_result_unavailable": {
+    "description": "Self-Test result defensive empty state"
+  },
+  "self_test_result_view_stats": "View statistics",
+  "@self_test_result_view_stats": {
+    "description": "Self-Test result tertiary CTA to session statistics"
+  },
+  "self_test_stats_title": "Session Statistics",
+  "@self_test_stats_title": {
+    "description": "Self-Test statistics screen AppBar title"
+  },
+  "self_test_stats_no_session": "No session data available",
+  "@self_test_stats_no_session": {
+    "description": "Self-Test stats defensive empty state"
+  },
+  "self_test_stats_difficulty_heading": "By difficulty",
+  "@self_test_stats_difficulty_heading": {
+    "description": "Self-Test stats difficulty section heading"
+  },
+  "self_test_stats_category_heading": "By category",
+  "@self_test_stats_category_heading": {
+    "description": "Self-Test stats category section heading"
+  },
+  "self_test_stats_category_empty": "Not enough data per category this session",
+  "@self_test_stats_category_empty": {
+    "description": "Self-Test stats when no category has 2+ questions"
+  },
+  "self_test_stats_speed_heading": "Speed",
+  "@self_test_stats_speed_heading": {
+    "description": "Self-Test stats speed section heading"
+  },
+  "self_test_stats_avg_time": "Avg time: {seconds}s",
+  "@self_test_stats_avg_time": {
+    "description": "Self-Test stats average time per question",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "self_test_stats_avg_correct": "When correct: {seconds}s",
+  "@self_test_stats_avg_correct": {
+    "description": "Self-Test stats avg time on correct answers",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "self_test_stats_avg_wrong": "When wrong: {seconds}s",
+  "@self_test_stats_avg_wrong": {
+    "description": "Self-Test stats avg time on wrong or skipped",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "self_test_stats_insight_heading": "Insight",
+  "@self_test_stats_insight_heading": {
+    "description": "Self-Test stats insight section heading"
+  },
+  "self_test_stats_insight_strong": "Strong session — you held above 80% across all levels.",
+  "@self_test_stats_insight_strong": {
+    "description": "Self-Test stats celebratory insight when weakest band ≥80%"
+  },
+  "self_test_stats_insight_weakest": "You struggled most with {difficulty} ({percent}% correct).",
+  "@self_test_stats_insight_weakest": {
+    "description": "Self-Test stats weakest difficulty insight",
+    "placeholders": {
+      "difficulty": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "self_test_stats_back_to_results": "Back to results",
+  "@self_test_stats_back_to_results": {
+    "description": "Self-Test stats return to result screen"
+  },
+  "self_test_quit_title": "Quit Self-Test?",
+  "@self_test_quit_title": {
+    "description": "Self-Test quit confirmation dialog title"
+  },
+  "self_test_quit_message": "Quitting will lose your progress on this session.",
+  "@self_test_quit_message": {
+    "description": "Self-Test quit confirmation dialog body"
+  },
+  "self_test_quit_continue": "Continue playing",
+  "@self_test_quit_continue": {
+    "description": "Self-Test quit dialog dismiss CTA"
+  },
+  "self_test_quit_confirm": "Quit",
+  "@self_test_quit_confirm": {
+    "description": "Self-Test quit dialog destructive CTA"
   },
   "arenaScreenTitle": "Arena",
   "@arenaScreenTitle": {
@@ -188,6 +434,356 @@
   "@duelScreenTitle": {
     "description": "TODO(copy) standalone /duel AppBar"
   },
+  "duelStartButton": "Start a duel",
+  "@duelStartButton": {
+    "description": "Duel placeholder entry CTA from /duel to /duel/match-type"
+  },
+  "duelMatchTypeTitle": "Choose match type",
+  "@duelMatchTypeTitle": {
+    "description": "Duel placeholder AppBar title on /duel/match-type"
+  },
+  "duelMatchTypeRandom": "Random opponent",
+  "@duelMatchTypeRandom": {
+    "description": "Duel placeholder random match button label"
+  },
+  "duelMatchTypeInvite": "Invite a friend",
+  "@duelMatchTypeInvite": {
+    "description": "Duel placeholder invite match button label"
+  },
+  "duelMatchTypeJoinCode": "Have a code from a friend?",
+  "@duelMatchTypeJoinCode": {
+    "description": "Duel match-type secondary TextButton to /duel/join for invite recipients"
+  },
+  "duelJoinCodeTitle": "Got an invite code?",
+  "@duelJoinCodeTitle": {
+    "description": "Duel join-by-code screen AppBar title"
+  },
+  "duelJoinCodeHelper": "Drop the code Brainjamin gave your challenger and you're in.",
+  "@duelJoinCodeHelper": {
+    "description": "Duel join-by-code helper line (placeholder mascot voice)"
+  },
+  "duelJoinCodeHint": "e.g. P5EQPR",
+  "@duelJoinCodeHint": {
+    "description": "Duel join-by-code TextField hint"
+  },
+  "duelJoinCodeCta": "Join duel",
+  "@duelJoinCodeCta": {
+    "description": "Duel join-by-code primary button"
+  },
+  "duelJoinCodeBack": "Back",
+  "@duelJoinCodeBack": {
+    "description": "Duel join-by-code secondary back button"
+  },
+  "duelJoinCodeEmpty": "Brainjamin needs a code to work with.",
+  "@duelJoinCodeEmpty": {
+    "description": "Duel join-by-code validation when empty"
+  },
+  "duelJoinCodeErrorNotFound": "That code didn't match an open duel. Double-check it?",
+  "@duelJoinCodeErrorNotFound": {
+    "description": "Duel join callable not-found mapped message"
+  },
+  "duelJoinCodeErrorClosed": "This duel can't be joined anymore. Maybe it expired or already filled.",
+  "@duelJoinCodeErrorClosed": {
+    "description": "Duel join failed-precondition mapped message"
+  },
+  "duelJoinCodeErrorTooMany": "Too many active duels. Finish one first.",
+  "@duelJoinCodeErrorTooMany": {
+    "description": "Duel join resource-exhausted mapped message"
+  },
+  "duelJoinCodeErrorAuth": "Sign-in expired. Reopen the app.",
+  "@duelJoinCodeErrorAuth": {
+    "description": "Duel join unauthenticated mapped message"
+  },
+  "duelJoinCodeErrorGeneric": "Couldn't join the duel. Try again.",
+  "@duelJoinCodeErrorGeneric": {
+    "description": "Duel join generic error SnackBar"
+  },
+  "duelMatchTypeQueueCount": "{count, plural, =1 {1 challenger queued} other {{count} challengers queued}}",
+  "@duelMatchTypeQueueCount": {
+    "description": "Duel match-type random queue hint from getDuelLobbyStats (Model A wording)",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "duelWaitingTitle": "Looking for an opponent",
+  "@duelWaitingTitle": {
+    "description": "Duel placeholder AppBar title on /duel/waiting"
+  },
+  "duelWaitingSearching": "Looking for an opponent — {seconds}s",
+  "@duelWaitingSearching": {
+    "description": "Duel waiting active search line with countdown seconds remaining",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "duelWaitingQueueLine": "{count, plural, =1 {1 waiting in queue} other {{count} waiting in queue}}",
+  "@duelWaitingQueueLine": {
+    "description": "Duel waiting queue size line from getDuelLobbyStats",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "duelWaitingBackgroundTitle": "Still searching",
+  "@duelWaitingBackgroundTitle": {
+    "description": "Duel waiting title shown after active 30-second search ends"
+  },
+  "duelWaitingBackgroundBody": "We'll notify you when matched",
+  "@duelWaitingBackgroundBody": {
+    "description": "Duel waiting body shown in background mode placeholder"
+  },
+  "duelWaitingCancelGoHome": "Cancel and go home",
+  "@duelWaitingCancelGoHome": {
+    "description": "Duel waiting background mode action to leave duel flow and return home"
+  },
+  "duelWaitingCancel": "Cancel",
+  "@duelWaitingCancel": {
+    "description": "Duel waiting always-visible action to cancel search and return to match-type"
+  },
+  "duelWaitingPopTitle": "Cancel duel search?",
+  "@duelWaitingPopTitle": {
+    "description": "Duel waiting back-navigation confirmation dialog title"
+  },
+  "duelWaitingPopBody": "You'll be removed from the queue.",
+  "@duelWaitingPopBody": {
+    "description": "Duel waiting back-navigation confirmation dialog body"
+  },
+  "duelWaitingPopStay": "Stay",
+  "@duelWaitingPopStay": {
+    "description": "Duel waiting back-navigation confirmation cancel action"
+  },
+  "duelWaitingPopConfirm": "Cancel",
+  "@duelWaitingPopConfirm": {
+    "description": "Duel waiting back-navigation confirmation proceed action"
+  },
+  "duelWaitingInvitePlaceholder": "Invite flow coming soon",
+  "@duelWaitingInvitePlaceholder": {
+    "description": "Duel waiting placeholder copy for invite type before share flow is implemented"
+  },
+  "duelWaitingInviteBack": "Back",
+  "@duelWaitingInviteBack": {
+    "description": "Duel waiting invite placeholder action to return to match-type"
+  },
+  "duelWaitingContinue": "Continue",
+  "@duelWaitingContinue": {
+    "description": "Duel placeholder button to continue from waiting to quiz"
+  },
+  "duelQuizTitle": "Duel",
+  "@duelQuizTitle": {
+    "description": "Duel placeholder AppBar title on /duel/quiz"
+  },
+  "duelQuizFinish": "Finish",
+  "@duelQuizFinish": {
+    "description": "Duel placeholder button to continue from quiz to result"
+  },
+  "duelQuizLoading": "Loading questions",
+  "@duelQuizLoading": {
+    "description": "Duel quiz loading state while getDuelQuestions is in flight"
+  },
+  "duelQuizError": "Couldn't load duel",
+  "@duelQuizError": {
+    "description": "Duel quiz generic load error headline"
+  },
+  "duelQuizErrorBack": "Back",
+  "@duelQuizErrorBack": {
+    "description": "Duel quiz error state action to return to duel entry"
+  },
+  "duelQuizTimer": "{seconds}s",
+  "@duelQuizTimer": {
+    "description": "Duel quiz per-question countdown timer label",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "duelQuizSubmitting": "Submitting...",
+  "@duelQuizSubmitting": {
+    "description": "Duel quiz inline status while submitDuelAnswers runs"
+  },
+  "duelQuizSubmitError": "Couldn't submit answers",
+  "@duelQuizSubmitError": {
+    "description": "Duel quiz snackbar title when answer submission fails"
+  },
+  "duelQuizSubmitRetry": "Retry",
+  "@duelQuizSubmitRetry": {
+    "description": "Duel quiz snackbar action to retry submitDuelAnswers"
+  },
+  "duelQuizQuitTitle": "Quit duel?",
+  "@duelQuizQuitTitle": {
+    "description": "Duel quiz back-navigation confirmation dialog title"
+  },
+  "duelQuizQuitBody": "You'll forfeit this match.",
+  "@duelQuizQuitBody": {
+    "description": "Duel quiz back-navigation confirmation dialog body"
+  },
+  "duelQuizQuitStay": "Stay",
+  "@duelQuizQuitStay": {
+    "description": "Duel quiz quit dialog cancel action"
+  },
+  "duelQuizQuitConfirm": "Quit",
+  "@duelQuizQuitConfirm": {
+    "description": "Duel quiz quit dialog destructive confirm action"
+  },
+  "duelQuizProgress": "Question {current} of {total}",
+  "@duelQuizProgress": {
+    "description": "Duel quiz app bar progress label",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "duelResultTitle": "Result",
+  "@duelResultTitle": {
+    "description": "Duel placeholder AppBar title on /duel/result"
+  },
+  "duelResultBackHome": "Back to Home",
+  "@duelResultBackHome": {
+    "description": "Duel placeholder button to return to Home from /duel/result"
+  },
+  "duelInviteShareTitle": "Invite a friend",
+  "@duelInviteShareTitle": {
+    "description": "Duel invite share screen AppBar title (placeholder mascot voice)"
+  },
+  "duelInviteShareSubtitle": "Toss them this code — once they punch it in Brainjamin, they'll take the rival seat.",
+  "@duelInviteShareSubtitle": {
+    "description": "Duel invite share helper body under headline"
+  },
+  "duelInviteShareShareButton": "Share invite",
+  "@duelInviteShareShareButton": {
+    "description": "Duel invite share opens OS sheet"
+  },
+  "duelInviteSharePlayNow": "Play my round now",
+  "@duelInviteSharePlayNow": {
+    "description": "Duel creator starts quiz after creating invite duel"
+  },
+  "duelInviteShareDeepLinkFootnote": "Links are placeholders for V2 — codes are king for now.",
+  "@duelInviteShareDeepLinkFootnote": {
+    "description": "Tiny footnote explaining fake URL in share payload"
+  },
+  "duelInviteShareCodeCopied": "Code copied!",
+  "@duelInviteShareCodeCopied": {
+    "description": "Snack after copying duel invite display code"
+  },
+  "duelInviteShareCopyTooltip": "Copy code",
+  "@duelInviteShareCopyTooltip": {
+    "description": "IconButton tooltip for clipboard copy"
+  },
+  "duelInviteShareMessage": "Brainjamin mascot here — I've challenged you to a duel. Your code is {code}. Tap to accept (stub link for V2): https://brainjamin.com/duel/{code}",
+  "@duelInviteShareMessage": {
+    "description": "Share sheet body for duel invite share_plus",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "duelInviteShareMissingParams": "Something's scrambled — hustle back home and try again.",
+  "@duelInviteShareMissingParams": {
+    "description": "Invite share screen invalid query params fallback"
+  },
+  "duelResultAwaitRivalAnswers": "You're done — your rival still owes Brainjamin their picks.",
+  "@duelResultAwaitRivalAnswers": {
+    "description": "Duel result when one slot finished locally, opponent unfinished"
+  },
+  "duelResultSeekMatch": "Your round's wrapped — Brainjamin's scouring for your next challenger.",
+  "@duelResultSeekMatch": {
+    "description": "Duel result creator solo after Model A submit while duel still unmatched"
+  },
+  "duelResultNotReady": "Result's not surfaced yet.",
+  "@duelResultNotReady": {
+    "description": "Duel result fallback when duel state mismatches playing flow"
+  },
+  "duelResultYouWon": "You edged it!",
+  "@duelResultYouWon": {
+    "description": "Duel outcome badge snippet when winner_id equals user"
+  },
+  "duelResultYouLost": "They scraped past you!",
+  "@duelResultYouLost": {
+    "description": "Duel outcome snippet when loser"
+  },
+  "duelResultTie": "Dead heat — classy effort both sides!",
+  "@duelResultTie": {
+    "description": "Duel outcome snippet when tie"
+  },
+  "duelResultMyCorrect": "{count} right on your slate",
+  "@duelResultMyCorrect": {
+    "description": "Duel user's correct count headline",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "duelResultTheirCorrect": "{count} right on theirs",
+  "@duelResultTheirCorrect": {
+    "description": "Duel opponent correct count headline",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "duelResultStatAccuracy": "Accuracy",
+  "@duelResultStatAccuracy": {
+    "description": "Duel result completed stats row label"
+  },
+  "duelResultStatTotalTime": "Total time",
+  "@duelResultStatTotalTime": {
+    "description": "Duel result completed stats total time row label"
+  },
+  "duelResultStatScore": "Score",
+  "@duelResultStatScore": {
+    "description": "Duel result completed stats score row label"
+  },
+  "duelResultStatFaster": " (faster)",
+  "@duelResultStatFaster": {
+    "description": "Appended to faster player's time on completed duel stats"
+  },
+  "duelResultStatSummary": "This duel covered {categoryCount} categories across difficulties {minDifficulty}-{maxDifficulty}.",
+  "@duelResultStatSummary": {
+    "description": "Duel result flavor line from duel_questions metadata",
+    "placeholders": {
+      "categoryCount": {
+        "type": "int"
+      },
+      "minDifficulty": {
+        "type": "int"
+      },
+      "maxDifficulty": {
+        "type": "int"
+      }
+    }
+  },
+  "duelResultStatSummaryOneCategory": "This duel covered 1 category across difficulties {minDifficulty}-{maxDifficulty}.",
+  "@duelResultStatSummaryOneCategory": {
+    "description": "Duel result flavor line when exactly one distinct category",
+    "placeholders": {
+      "minDifficulty": {
+        "type": "int"
+      },
+      "maxDifficulty": {
+        "type": "int"
+      }
+    }
+  },
+  "duelResultXpEarned": "XP's rolling toward your tally — snag the next duel soon.",
+  "@duelResultXpEarned": {
+    "description": "Duel completed XP hint without exposing exact xpAwarded from client"
+  },
+  "duelResultNewDuel": "New duel",
+  "@duelResultNewDuel": {
+    "description": "Navigate from result to match-type"
+  },
   "tournamentsEmptyTitle": "No tournaments yet",
   "@tournamentsEmptyTitle": {
     "description": "TODO(copy)"
@@ -196,6 +792,250 @@
   "@tournamentsEmptyBody": {
     "description": "TODO(copy)"
   },
+  "tournamentsEmptyBodyPrefix": "Brainjamin is cooking up the next batch — check back in",
+  "@tournamentsEmptyBodyPrefix": {
+    "description": "Tournaments tab empty state line before next-slot countdown"
+  },
+  "tournamentsActiveSectionHeader": "Active & Upcoming",
+  "@tournamentsActiveSectionHeader": {
+    "description": "Section header above visible tournaments"
+  },
+  "tournamentsEndedSectionHeader": "Past Tournaments",
+  "@tournamentsEndedSectionHeader": {
+    "description": "ExpansionTile for ended tournaments"
+  },
+  "tournamentsStatusActive": "Active now",
+  "@tournamentsStatusActive": {
+    "description": "Badge when tournament window is live"
+  },
+  "tournamentsStatusStartsIn": "Starts in",
+  "@tournamentsStatusStartsIn": {
+    "description": "Badge prefix before countdown to start"
+  },
+  "tournamentsStatusEnded": "Ended",
+  "@tournamentsStatusEnded": {
+    "description": "Badge for finished tournaments"
+  },
+  "tournamentsSubtitleDifficultyXp": "Easy → Hard · up to {xp} XP",
+  "@tournamentsSubtitleDifficultyXp": {
+    "description": "Classic card subtitle",
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentsCardTapComingSoon": "Tournament details coming in next sprint",
+  "@tournamentsCardTapComingSoon": {
+    "description": "SnackBar until Sprint 4.4b detail route"
+  },
+  "tournamentsErrorTitle": "Couldn't load tournaments",
+  "@tournamentsErrorTitle": {
+    "description": "Firestore stream error title"
+  },
+  "tournamentsErrorRetry": "Retry",
+  "@tournamentsErrorRetry": {
+    "description": "Retry button after tournaments load error"
+  },
+  "tournamentDetailNotFoundTitle": "Tournament not found",
+  "@tournamentDetailNotFoundTitle": {
+    "description": "Detail screen missing tournament doc"
+  },
+  "tournamentDetailNotFoundBody": "This tournament link is invalid or expired.",
+  "@tournamentDetailNotFoundBody": {
+    "description": "Invalid deep link body"
+  },
+  "tournamentDetailBackToList": "Back to Tournaments",
+  "@tournamentDetailBackToList": {
+    "description": "CTA from not-found to main shell"
+  },
+  "tournamentDetailErrorRetry": "Retry",
+  "@tournamentDetailErrorRetry": {
+    "description": "Retry after detail parse/stream error"
+  },
+  "tournamentDetailAboutHeader": "About this tournament",
+  "@tournamentDetailAboutHeader": {
+    "description": "Section header on tournament detail"
+  },
+  "tournamentDetailQuestionsLabel": "Questions",
+  "@tournamentDetailQuestionsLabel": {
+    "description": "Info row label"
+  },
+  "tournamentDetailQuestionsValue": "20 multiple-choice",
+  "@tournamentDetailQuestionsValue": {
+    "description": "Info row value"
+  },
+  "tournamentDetailDifficultyLabel": "Difficulty",
+  "@tournamentDetailDifficultyLabel": {
+    "description": "Info row label"
+  },
+  "tournamentDetailDifficultyValue": "Easy → Hard, 4 per level",
+  "@tournamentDetailDifficultyValue": {
+    "description": "Info row value"
+  },
+  "tournamentDetailWindowLabel": "Window",
+  "@tournamentDetailWindowLabel": {
+    "description": "Info row label for schedule"
+  },
+  "tournamentDetailXpHeader": "Earn XP based on your rank",
+  "@tournamentDetailXpHeader": {
+    "description": "XP tier table header"
+  },
+  "tournamentDetailCtaPlayNow": "Play now",
+  "@tournamentDetailCtaPlayNow": {
+    "description": "Primary CTA during live window"
+  },
+  "tournamentDetailCtaStartsIn": "Starts in",
+  "@tournamentDetailCtaStartsIn": {
+    "description": "Prefix before countdown on disabled upcoming CTA"
+  },
+  "tournamentDetailCtaContinue": "Continue",
+  "@tournamentDetailCtaContinue": {
+    "description": "Resume in-progress session"
+  },
+  "tournamentDetailCtaSubmittedPending": "Submitted · ranking pending",
+  "@tournamentDetailCtaSubmittedPending": {
+    "description": "Submitted before finalize"
+  },
+  "tournamentDetailCtaViewResults": "View results · Ranked #{rank}",
+  "@tournamentDetailCtaViewResults": {
+    "description": "Post-finalize CTA; rank is 1-based",
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentDetailCtaDidNotPlay": "You didn't play this one",
+  "@tournamentDetailCtaDidNotPlay": {
+    "description": "Ended tournament and no session"
+  },
+  "tournamentDetailMascotEncouragement": "Brainjamin's ready when you are.",
+  "@tournamentDetailMascotEncouragement": {
+    "description": "Footer copy when live and no session"
+  },
+  "tournamentDetailComingSoon": "Coming in next sprint",
+  "@tournamentDetailComingSoon": {
+    "description": "Placeholder until 4.4b-ii quiz route"
+  },
+  "classicQuizAppBarTitle": "Question {current} / {total}",
+  "@classicQuizAppBarTitle": {
+    "description": "Classic quiz AppBar progress",
+    "placeholders": {
+      "current": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "classicQuizLoadingText": "Loading tournament...",
+  "@classicQuizLoadingText": {
+    "description": "Classic quiz loading label"
+  },
+  "classicQuizPreviousButton": "Previous",
+  "@classicQuizPreviousButton": {},
+  "classicQuizNextButton": "Next",
+  "@classicQuizNextButton": {},
+  "classicQuizSubmitButton": "Submit answers",
+  "@classicQuizSubmitButton": {},
+  "classicQuizSubmitDisabledHint": "Answer all 20 to submit",
+  "@classicQuizSubmitDisabledHint": {},
+  "classicQuizAnsweredCounter": "{answered}/{total} answered",
+  "@classicQuizAnsweredCounter": {
+    "placeholders": {
+      "answered": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "classicQuizQuitTitle": "Leave the quiz?",
+  "@classicQuizQuitTitle": {},
+  "classicQuizQuitBody": "Your draft is saved. You can come back any time before the tournament ends.",
+  "@classicQuizQuitBody": {},
+  "classicQuizQuitStay": "Stay",
+  "@classicQuizQuitStay": {},
+  "classicQuizQuitLeave": "Leave",
+  "@classicQuizQuitLeave": {},
+  "classicQuizSubmittedTitle": "Submitted!",
+  "@classicQuizSubmittedTitle": {},
+  "classicQuizSubmittedBody": "{correct}/20 correct",
+  "@classicQuizSubmittedBody": {
+    "placeholders": {
+      "correct": { "type": "int" }
+    }
+  },
+  "classicQuizSubmittedBackCta": "Back to tournament",
+  "@classicQuizSubmittedBackCta": {},
+  "classicQuizAlreadySubmittedTitle": "Already played",
+  "@classicQuizAlreadySubmittedTitle": {},
+  "classicQuizAlreadySubmittedBody": "You already submitted answers for this tournament.",
+  "@classicQuizAlreadySubmittedBody": {},
+  "classicQuizErrorRetry": "Retry",
+  "@classicQuizErrorRetry": {},
+  "classicQuizErrorBack": "Back",
+  "@classicQuizErrorBack": {},
+  "classicQuizErrorWindowClosed": "This tournament's window has closed.",
+  "@classicQuizErrorWindowClosed": {},
+  "classicQuizErrorGeneric": "Something went wrong. Try again.",
+  "@classicQuizErrorGeneric": {},
+  "classicResultLoadingText": "Loading results...",
+  "@classicResultLoadingText": {},
+  "classicResultErrorTitle": "Couldn't load results",
+  "@classicResultErrorTitle": {},
+  "classicResultErrorRetry": "Retry",
+  "@classicResultErrorRetry": {},
+  "classicResultErrorBack": "Back",
+  "@classicResultErrorBack": {},
+  "classicResultPendingScore": "{correct}/20 correct",
+  "@classicResultPendingScore": {
+    "placeholders": {
+      "correct": { "type": "int" }
+    }
+  },
+  "classicResultPendingBody": "Brainjamin's tallying scores. Final ranking lands when this tournament ends.",
+  "@classicResultPendingBody": {},
+  "classicResultPendingEndsIn": "Ends in",
+  "@classicResultPendingEndsIn": {},
+  "classicResultPendingBackCta": "Back to tournament",
+  "@classicResultPendingBackCta": {},
+  "classicResultFinalizedRank": "#{rank} of {total}",
+  "@classicResultFinalizedRank": {
+    "placeholders": {
+      "rank": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  },
+  "classicResultFinalizedScore": "{correct}/20 correct",
+  "@classicResultFinalizedScore": {
+    "placeholders": {
+      "correct": { "type": "int" }
+    }
+  },
+  "classicResultFinalizedXpEarned": "+{xp} XP",
+  "@classicResultFinalizedXpEarned": {
+    "placeholders": {
+      "xp": { "type": "int" }
+    }
+  },
+  "classicResultFinalizedXpPending": "XP pending",
+  "@classicResultFinalizedXpPending": {},
+  "classicResultFinalizedTop10Header": "Top 10",
+  "@classicResultFinalizedTop10Header": {},
+  "classicResultFinalizedTop10Entry": "{correct} correct",
+  "@classicResultFinalizedTop10Entry": {
+    "placeholders": {
+      "correct": { "type": "int" }
+    }
+  },
+  "classicResultFinalizedAnswersHeader": "Your answers",
+  "@classicResultFinalizedAnswersHeader": {},
+  "classicResultFinalizedQuestionTitle": "Q{number} · {category} · D{difficulty}",
+  "@classicResultFinalizedQuestionTitle": {
+    "placeholders": {
+      "number": { "type": "int" },
+      "category": {},
+      "difficulty": { "type": "int" }
+    }
+  },
+  "classicResultFinalizedBackCta": "Back to tournaments",
+  "@classicResultFinalizedBackCta": {},
   "leaderboardEmptyTitle": "Leaderboards open up soon",
   "@leaderboardEmptyTitle": {
     "description": "TODO(copy)"
@@ -391,5 +1231,65 @@
   "push_primer_decline": "Not now",
   "@push_primer_decline": {
     "description": "Push permission soft primer decline CTA"
+  },
+  "report_modal_title": "Report this question",
+  "@report_modal_title": {
+    "description": "Report question modal title"
+  },
+  "report_modal_reason_hint": "What's the issue?",
+  "@report_modal_reason_hint": {
+    "description": "Report modal reason dropdown hint"
+  },
+  "report_modal_reason_wrong_answer": "The marked answer is wrong",
+  "@report_modal_reason_wrong_answer": {
+    "description": "Report reason label"
+  },
+  "report_modal_reason_wrong_or_unclear": "Question is wrong or unclear",
+  "@report_modal_reason_wrong_or_unclear": {
+    "description": "Report reason label"
+  },
+  "report_modal_reason_inappropriate": "Inappropriate content",
+  "@report_modal_reason_inappropriate": {
+    "description": "Report reason label"
+  },
+  "report_modal_reason_other": "Something else",
+  "@report_modal_reason_other": {
+    "description": "Report reason label"
+  },
+  "report_modal_free_text_label": "More detail (optional)",
+  "@report_modal_free_text_label": {
+    "description": "Report modal free text field label"
+  },
+  "report_modal_cancel": "Cancel",
+  "@report_modal_cancel": {
+    "description": "Report modal cancel action"
+  },
+  "report_modal_submit": "Submit",
+  "@report_modal_submit": {
+    "description": "Report modal submit action"
+  },
+  "report_modal_success": "Thanks — Brainjamin will take a look.",
+  "@report_modal_success": {
+    "description": "Report submitted confirmation snackbar"
+  },
+  "report_modal_error_already_reported": "You've already reported this question.",
+  "@report_modal_error_already_reported": {
+    "description": "Duplicate report inline error"
+  },
+  "report_modal_error_cap_reached": "Too many reports today. Try again tomorrow.",
+  "@report_modal_error_cap_reached": {
+    "description": "Daily report cap inline error"
+  },
+  "report_modal_error_auth_required": "Please sign in to report.",
+  "@report_modal_error_auth_required": {
+    "description": "Unauthenticated report inline error"
+  },
+  "report_modal_error_invalid": "Something's off with this report. Try again.",
+  "@report_modal_error_invalid": {
+    "description": "Invalid argument inline error"
+  },
+  "report_modal_error_generic": "Couldn't submit right now. Try again.",
+  "@report_modal_error_generic": {
+    "description": "Generic report submission error"
   }
 }

@@ -77,6 +77,169 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // self_test_sessions — per-session 25-Q Self-Test runs.
+    // Created and updated by selectSelfTestQuestions / submitSelfTestSession
+    // Cloud Functions only. Clients never read or write directly; the
+    // session payload (questions, correct indices, answers) is returned
+    // to the client through the callable, not via Firestore listen.
+    match /self_test_sessions/{sessionId} {
+      allow read, write: if false;
+    }
+
+    // users_public — denormalized public profile (displayName, xp,
+    // level, country) for leaderboard display. Created lazily on
+    // anonymous → permanent conversion by onUserConverted Cloud Function.
+    // Sprint 5 (Profile + Ranking) will open client-side reads with a
+    // separate match block at that time. Until then, no client access.
+    match /users_public/{uid} {
+      allow read, write: if false;
+    }
+
+    // self_test_leaderboard/{weekKey}/sessions/{sessionId} — weekly
+    // Self-Test leaderboard entries. Written by submitSelfTestSession.
+    // Sprint 5 (Leaderboard tab) will open client-side reads with an
+    // ordered query when that surface ships. Until then, no client access.
+    match /self_test_leaderboard/{weekKey}/sessions/{sessionId} {
+      allow read, write: if false;
+    }
+
+    // reports — user-submitted question reports. Written exclusively
+    // through the submitReport callable (transactional dedup +
+    // dailyReports cap). Clients never read or write reports directly;
+    // admin triage in V1 happens through Firebase Console.
+    match /reports/{reportId} {
+      allow read, write: if false;
+    }
+
+    // =====================================================================
+    // Duel (Sprint 3) — anonymous users allowed; all writes server-side via
+    // createDuel / joinDuel / getDuelQuestions / submitDuelAnswers /
+    // expireDuels Cloud Functions. Score calculation is server-authoritative.
+    // =====================================================================
+
+    match /duels/{duelId} {
+      allow read: if request.auth != null &&
+        (
+          resource.data.player1_id == request.auth.uid ||
+          (resource.data.player2_id != null && resource.data.player2_id == request.auth.uid)
+        ) &&
+        (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('banned', false) != true
+        );
+      // All writes go through createDuel / joinDuel / submitDuelAnswers /
+      // expireDuels Cloud Functions.
+      allow create, update, delete: if false;
+    }
+
+    match /duel_questions/{duelId}/q/{qIndex} {
+      allow read: if request.auth != null &&
+        (
+          get(/databases/$(database)/documents/duels/$(duelId)).data.player1_id == request.auth.uid ||
+          (get(/databases/$(database)/documents/duels/$(duelId)).data.player2_id != null && get(/databases/$(database)/documents/duels/$(duelId)).data.player2_id == request.auth.uid)
+        ) &&
+        (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('banned', false) != true
+        );
+      allow create, update, delete: if false;
+    }
+
+    match /duel_queue/{uid} {
+      allow read: if request.auth != null &&
+        request.auth.uid == uid &&
+        (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('banned', false) != true
+        );
+      allow create, update, delete: if false;
+    }
+
+    // =====================================================================
+    // Tournament / Live (Sprint 4.1) — reads for signed-in clients; all
+    // writes via Admin SDK in Cloud Functions only.
+    // =====================================================================
+
+    match /tournaments/{tournamentId} {
+      allow read: if request.auth != null &&
+        (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('banned', false) != true
+        );
+      allow create, update, delete: if false;
+    }
+
+    match /tournament_sessions/{sessionId} {
+      allow read: if request.auth != null &&
+        resource.data.uid == request.auth.uid &&
+        (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('banned', false) != true
+        );
+      allow create, update, delete: if false;
+    }
+
+    match /live_tournaments/{ltId} {
+      allow read: if request.auth != null &&
+        (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('banned', false) != true
+        );
+      allow create, update, delete: if false;
+    }
+
+    match /live_participants/{ltId}/users/{uid} {
+      allow read: if request.auth != null &&
+        request.auth.uid == uid &&
+        (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('banned', false) != true
+        );
+      allow create, update, delete: if false;
+    }
+
+    // correctIndex is written server-side only at reveal; clients only see
+    // it after reveal via listener snapshots.
+    match /live_questions/{ltId}/q/{qIndex} {
+      allow read: if request.auth != null &&
+        (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('banned', false) != true
+        );
+      allow create, update, delete: if false;
+    }
+
+    // Leaderboard docs — any signed-in (non-banned) user may read for UI.
+    match /live_results/{ltId}/users/{uid} {
+      allow read: if request.auth != null &&
+        (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('banned', false) != true
+        );
+      allow create, update, delete: if false;
+    }
+
+    match /category_rotation/{docId} {
+      allow read, write: if false;
+    }
+
+    match /embeddings/{qId} {
+      allow read, write: if false;
+    }
+
+    match /ai_cache/{docId} {
+      allow read, write: if false;
+    }
+
+    match /tournament_leaderboards/{slotId} {
+      allow read: if request.auth != null &&
+        (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('banned', false) != true
+        );
+      allow create, update, delete: if false;
+    }
+
     // Default deny for every other path. Each new collection gets
     // its own match block when its feature ships.
     match /{document=**} {

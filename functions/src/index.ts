@@ -10,6 +10,7 @@ import {isDifficulty} from "./shared/difficulty";
 import {AI_SECRETS} from "./shared/secrets";
 import {selectDailyQuestion} from "./callables/selectDailyQuestion";
 import {submitDailyAnswer} from "./callables/submitDailyAnswer";
+import {submitReport} from "./callables/submitReport";
 
 if (admin.apps.length === 0) {
   admin.initializeApp();
@@ -95,4 +96,27 @@ export const generateQuestions = onCall(
 );
 
 export {selectDailyQuestion};
+export {selectSelfTestQuestions} from "./callables/selectSelfTestQuestions";
 export {submitDailyAnswer};
+export {submitReport};
+export {submitSelfTestSession} from "./callables/submitSelfTestSession";
+
+// Sprint 3 — Duel
+export {createDuel} from "./callables/createDuel";
+export {joinDuel} from "./callables/joinDuel";
+export {getDuelQuestions} from "./callables/getDuelQuestions";
+export {submitDuelAnswers} from "./callables/submitDuelAnswers";
+export {getClassicTournamentQuestions} from "./callables/getClassicTournamentQuestions";
+export {submitClassicTournamentAnswers} from "./callables/submitClassicTournamentAnswers";
+export {getClassicTournamentReveal} from "./callables/getClassicTournamentReveal";
+export {getDuelLobbyStats} from "./callables/getDuelLobbyStats";
+export {expireDuels} from "./scheduled/expireDuels";
+export {generateClassicTournamentContent} from "./scheduled/generateClassicTournamentContent";
+export {makeClassicTournamentVisible} from "./scheduled/makeClassicTournamentVisible";
+export {finalizeClassicTournament} from "./scheduled/finalizeClassicTournament";
+export {prepareLiveTournament} from "./scheduled/prepareLiveTournament";
+export {joinLiveTournament} from "./callables/joinLiveTournament";
+export {fastForwardLiveStart} from "./callables/fastForwardLiveStart";
+export {submitLiveAnswers} from "./callables/submitLiveAnswers";
+export {runLiveTournament} from "./scheduled/runLiveTournament";
+export {finalizeLiveTournament} from "./scheduled/finalizeLiveTournament";

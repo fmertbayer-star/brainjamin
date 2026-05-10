@@ -3,6 +3,11 @@ import 'package:go_router/go_router.dart';
 import '../core/services/onboarding_flow_controller.dart';
 import '../features/arena/arena_screen.dart';
 import '../features/duel/duel_screen.dart';
+import '../features/duel/widgets/duel_match_type_screen.dart';
+import '../features/duel/widgets/duel_join_code_screen.dart';
+import '../features/duel/widgets/duel_quiz_screen.dart';
+import '../features/duel/widgets/duel_invite_share_screen.dart';
+import '../features/duel/widgets/duel_result_screen.dart';
 import '../features/daily/widgets/daily_question_screen.dart';
 import '../features/daily/state/daily_question_controller.dart';
 import '../features/main_shell/main_shell.dart';
@@ -11,6 +16,12 @@ import '../features/onboarding/age_gate_screen.dart';
 import '../features/onboarding/sign_in_screen.dart';
 import '../features/onboarding/welcome_screen.dart';
 import '../features/self_test/self_test_screen.dart';
+import '../features/tournaments/classic_quiz_screen.dart';
+import '../features/tournaments/classic_result_screen.dart';
+import '../features/tournaments/live_tournament_lobby_screen.dart';
+import '../features/tournaments/live_tournament_quiz_screen.dart';
+import '../features/tournaments/live_tournament_result_screen.dart';
+import '../features/tournaments/tournament_detail_screen.dart';
 
 /// Single app router — no brand/admin split (Brainjamin CONTEXT).
 ///
@@ -64,15 +75,99 @@ final class AppRouter {
           path: '/duel',
           name: 'duel',
           builder: (context, state) => const DuelScreen(),
+          routes: [
+            GoRoute(
+              path: 'match-type',
+              name: 'duel-match-type',
+              builder: (context, state) => const DuelMatchTypeScreen(),
+            ),
+            GoRoute(
+              path: 'invite-share',
+              name: 'duel-invite-share',
+              builder: (context, state) => const DuelInviteShareScreen(),
+            ),
+            GoRoute(
+              path: 'join',
+              name: 'duel-join',
+              builder: (context, state) => const DuelJoinCodeScreen(),
+            ),
+            GoRoute(
+              path: 'quiz',
+              name: 'duel-quiz',
+              builder: (context, state) => const DuelQuizScreen(),
+            ),
+            GoRoute(
+              path: 'result',
+              name: 'duel-result',
+              builder: (context, state) => const DuelResultScreen(),
+            ),
+          ],
         ),
         GoRoute(
           path: '/daily',
           name: 'daily',
           builder: (context, state) => DailyQuestionScreen(
             controller: state.extra is DailyQuestionController ?
-              state.extra! as DailyQuestionController :
-              null,
+                state.extra! as DailyQuestionController :
+                null,
           ),
+        ),
+        GoRoute(
+          path: '/live-tournament/:ltId/quiz',
+          name: 'live-tournament-quiz',
+          builder: (context, state) {
+            final ltId = state.pathParameters['ltId'] ?? '';
+            return LiveTournamentQuizScreen(ltId: ltId);
+          },
+        ),
+        GoRoute(
+          path: '/live-tournament/:ltId/result',
+          name: 'live-tournament-result',
+          builder: (context, state) {
+            final ltId = state.pathParameters['ltId'] ?? '';
+            return LiveTournamentResultScreen(ltId: ltId);
+          },
+        ),
+        GoRoute(
+          path: '/live-tournament/:ltId',
+          name: 'live-tournament-lobby',
+          builder: (context, state) {
+            final ltId = state.pathParameters['ltId'] ?? '';
+            return LiveTournamentLobbyScreen(ltId: ltId);
+          },
+        ),
+        GoRoute(
+          path: '/tournament/:slotId',
+          name: 'tournament-detail',
+          builder: (context, state) {
+            final slotId = state.pathParameters['slotId'];
+            if (slotId == null || slotId.isEmpty) {
+              return const TournamentDetailScreen(slotId: '');
+            }
+            return TournamentDetailScreen(slotId: slotId);
+          },
+        ),
+        GoRoute(
+          path: '/tournament/:slotId/quiz',
+          name: 'tournament-quiz',
+          builder: (context, state) {
+            final slotId = state.pathParameters['slotId'];
+            if (slotId == null || slotId.isEmpty) {
+              return const TournamentDetailScreen(slotId: '');
+            }
+            return ClassicQuizScreen(slotId: slotId);
+          },
+        ),
+        GoRoute(
+          path: '/tournament/:slotId/result',
+          name: 'tournament-result',
+          builder: (context, state) {
+            final slotId = state.pathParameters['slotId'];
+            if (slotId == null || slotId.isEmpty) {
+              return const TournamentDetailScreen(slotId: '');
+            }
+            return ClassicResultScreen(slotId: slotId);
+          },
         ),
         GoRoute(
           path: '/onboarding/welcome',

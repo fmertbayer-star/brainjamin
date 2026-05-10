@@ -50,3 +50,10 @@ app.*.map.json
 
 # Pilot test output (Sprint 2.2.b)
 pilot_output.txt
+
+# Local scratch / dumps (never commit)
+.tmp_art_doc.json
+.tmp_history_doc.json
+.tmp_science_doc.json
+window_dump.xml
+functions/scripts/.selftest-seed-ids.json

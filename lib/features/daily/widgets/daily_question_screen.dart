@@ -116,35 +116,46 @@ class _DailyQuestionScreenState extends State<DailyQuestionScreen> {
     } catch (_) {}
   }
 
+  List<Widget> _dailyAppBarActions() {
+    final question = _controller.question;
+    final showMenu =
+        (_controller.status == DailyQuestionStatus.ready ||
+            _controller.status == DailyQuestionStatus.answered) &&
+        question != null;
+    if (!showMenu) {
+      return const [];
+    }
+    return [DailyOverflowMenu(questionId: question.qId)];
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.daily_card_headline),
-        actions: [const DailyOverflowMenu()],
-      ),
-      body: Stack(
-        children: [
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (context, _) {
-              switch (_controller.status) {
-                case DailyQuestionStatus.idle:
-                case DailyQuestionStatus.loading:
-                  return _buildLoading(l10n);
-                case DailyQuestionStatus.error:
-                  return _buildError(l10n);
-                case DailyQuestionStatus.ready:
-                  return _buildReady(l10n);
-                case DailyQuestionStatus.answered:
-                  return _buildAnswered(l10n);
-              }
-            },
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(l10n.daily_card_headline),
+            actions: _dailyAppBarActions(),
           ),
-          if (_showCoachOverlay) _buildCoachOverlay(l10n),
-        ],
-      ),
+          body: Stack(
+            children: [
+              switch (_controller.status) {
+                DailyQuestionStatus.idle || DailyQuestionStatus.loading =>
+                  _buildLoading(l10n),
+                DailyQuestionStatus.error =>
+                  _buildError(l10n),
+                DailyQuestionStatus.ready =>
+                  _buildReady(l10n),
+                DailyQuestionStatus.answered =>
+                  _buildAnswered(l10n),
+              },
+              if (_showCoachOverlay) _buildCoachOverlay(l10n),
+            ],
+          ),
+        );
+      },
     );
   }
 

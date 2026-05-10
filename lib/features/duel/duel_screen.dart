@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-import '../../core/widgets/mascot_empty_state.dart';
+import 'package:go_router/go_router.dart';
 
 /// Quick Duel / duel hub — placeholders only until Sprint 3.
 class DuelScreen extends StatelessWidget {
@@ -13,9 +12,17 @@ class DuelScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.duelScreenTitle)),
-      body: MascotEmptyState(
-        title: l10n.duelEmptyTitle,
-        body: l10n.duelEmptyBody,
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ElevatedButton(
+              onPressed: () => context.push('/duel/match-type'),
+              child: Text(l10n.duelStartButton),
+            ),
+          ],
+        ),
       ),
     );
   }

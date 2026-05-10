@@ -1,5 +1,6 @@
 /**
- * V1 category whitelist. Adding a category requires also updating the Flutter-side mirror
+ * V1 canonical list — 20 categories driving the 10-day tournament rotation per BRAINJAMIN.md § TOURNAMENT ENGINE.
+ * Adding a category requires also updating the Flutter-side mirror
  * (Sprint 2.2.b will note its location). Removing a category leaves orphaned questions in the
  * pool — handle migration explicitly.
  */
@@ -7,24 +8,24 @@
 export const CATEGORIES = [
   "history",
   "geography",
-  "science",
-  "nature",
-  "technology",
-  "sports",
+  "movies_tv",
   "music",
-  "movies",
-  "tv",
+  "sports",
+  "science",
+  "technology",
   "literature",
   "art",
-  "food",
-  "language",
-  "mythology",
-  "astrology",
-  "politics",
-  "business",
-  "mathematics",
-  "general_knowledge",
+  "food_drink",
+  "animals",
+  "nature",
   "pop_culture",
+  "mythology",
+  "video_games",
+  "fashion",
+  "astrology",
+  "health",
+  "space",
+  "world_capitals",
 ] as const;
 
 export type Category = typeof CATEGORIES[number];

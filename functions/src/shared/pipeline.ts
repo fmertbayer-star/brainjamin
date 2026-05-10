@@ -411,6 +411,7 @@ export async function generateOneQuestion(
       correctIndex: genQ.correctIndex,
       category: genQ.category,
       difficulty: genQ.difficulty,
+      flagged: false,
       createdAt: FieldValue.serverTimestamp(),
       generatorProvider: generatorResult.provider,
       verifierProvider,

@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../../report/data/report_service.dart';
+import '../../report/widgets/report_question_modal.dart';
+
 class DailyOverflowMenu extends StatelessWidget {
-  const DailyOverflowMenu({super.key});
+  const DailyOverflowMenu({super.key, required this.questionId});
+
+  final String questionId;
 
   @override
   Widget build(BuildContext context) {
@@ -16,8 +21,10 @@ class DailyOverflowMenu extends StatelessWidget {
         if (value != 'report') {
           return;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.daily_overflow_report_coming_soon)),
+        ReportQuestionModal.show(
+          context,
+          questionId: questionId,
+          gameMode: ReportGameMode.daily,
         );
       },
       itemBuilder: (context) => [

@@ -1,6 +1,7 @@
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {DateTime} from "luxon";
+import {isValidTimezone} from "../shared/timezone";
 
 interface DailyQuestionDoc {
   qId: string;
@@ -13,13 +14,6 @@ interface UserDailyState {
   forgivesAvailableThisWeek: number;
   lastForgiveResetWeekKey: string | null;
   xp: number;
-}
-
-function isValidTimezone(timezone: unknown): timezone is string {
-  if (typeof timezone !== "string") {
-    return false;
-  }
-  return DateTime.now().setZone(timezone).isValid;
 }
 
 function isValidSelectedIndex(value: unknown): value is 0 | 1 | 2 | 3 {

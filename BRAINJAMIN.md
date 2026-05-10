@@ -1,5 +1,5 @@
 # BRAINJAMIN
-Last reviewed: 2026-05-07
+Last reviewed: 2026-05-09 — Sprint 4.3 Steps 1+2a+2a-fix+2b+3a+3b+3c complete (backend + UI deployed); Step 2c (watchdog + T-5min push) parked; end-to-end smoke pending.
 
 Single source of structural truth for Brainjamin. Architecture, product, data
 model, security, design — locked decisions plus the implementation context
@@ -286,20 +286,34 @@ own dialog; no soft primer for UMP.
 - 10 questions, mixed categories (one per category for variety).
 - 15 sec/question.
 - **Source:** `questions_public` only — never LLM-generated per duel.
-  Per-pair dedup uses both players' `used_questions` history merged so
-  neither has seen the questions.
+  Per-pair dedup uses player1's `used_questions` history at duel
+  creation time. Player2 may see questions they have seen before;
+  accepted Model A tradeoff (player2 history is unknown when the
+  creator starts playing).
+- **Async always — creator plays immediately.** The moment
+  `createDuel` succeeds, the creator's 10 questions are written and
+  the creator answers them at their own pace. There is no waiting
+  screen. Opponent plays the same 10 questions whenever they match
+  (random) or join (invite), independently of the creator's timing.
 - Two methods:
-  - **Random match:** First 30 sec is active waiting screen. After 30
-    sec, transitions to background mode — user can close app, will
-    receive push when matched. Background queue TTL: 24 hours. After
-    24 hours unmatched, user dropped from queue with push.
-  - **Invite link:** User shares link, opponent plays when ready. Link
-    expires after 7 days. If unused, the inviter receives 10 XP
-    consolation.
+  - **Random match:** `createDuel(type: "random")` either matches
+    into an existing waiting/`player1_done` duel and the caller
+    becomes player2, or creates a fresh duel and the caller is
+    player1. Either way, the caller goes straight to the quiz
+    screen. Background queue TTL: 24 hours via `expireDuels`.
+  - **Invite link:** Creator gets a bare 6-char code (e.g.
+    `J345TY`). Code is shared via the OS share sheet (deep linking
+    is V2). Recipient enters the code in the in-app "Have a code
+    from a friend?" flow → `joinDuel` attaches them as player2.
+    Link/code expires after 7 days. If unused, the inviter
+    receives 10 XP consolation.
 - Both players answer same 10 questions, async (different times).
-- **Same-opponent dedup:** A user is not matched against an opponent
-  they faced within the last 24 hours.
-- **No bots.** If queue is empty, user waits.
+  Whichever player submits second triggers final scoring +
+  `winner_id` + XP grant via `submitDuelAnswers`.
+- **Same-opponent dedup:** A user is not matched against an
+  opponent they faced within the last 24 hours.
+- **No bots.** If queue is empty, the creator simply plays solo
+  until someone matches.
 - XP: Win +50, Draw +25, Loss +10.
 
 ### Auto-generated (2)
@@ -319,6 +333,12 @@ own dialog; no soft primer for UMP.
 **6. Live Tournament**
 - 20 questions, real-time, 15 sec/question (~5 min total game; ~7 min
   including reveals + transitions).
+- **Source:** `questions_public` only — never LLM-generated. At tournament
+  start, Live pulls 20 questions from the pool with **5 difficulty levels
+  (1–5), equal distribution: exactly 4 questions per level (4/4/4/4/4).**
+  Categories
+  are **not** bucketed — Live is mixed-category by design (contrast with
+  Classic, which is single-category per slot).
 - Synchronous — all players see same question at same instant, driven
   by server-side authoritative loop (no client clocks).
 - **No registration.** Anyone in lobby at start time joins.
@@ -326,8 +346,9 @@ own dialog; no soft primer for UMP.
   before joining auto-skip to 0 points. (`lateJoinClosed: true` flag set
   by server after Q5 reveal completes.)
 - **Minimum participants: 1.** Lobby with 1+ joined player runs the
-  tournament normally. Solo Live is intentionally allowed: content is
-  already generated (sunk cost at T-24h), ad surfaces appear, mechanic
+  tournament normally. Solo Live is intentionally allowed: the 20
+  questions are drawn from `questions_public` at tournament start (see
+  Source above), ad surfaces appear, mechanic
   is consistent with Arena's solo-allowed rule.
 - **0 participants → no-op.** If lobby is empty at start, server loop
   does NOT begin. `live_tournaments/{ltId}.status` is set to
@@ -356,29 +377,64 @@ The most critical auto-pilot module. Tournaments are not manually created.
 - **Two trigger times daily:** 07:00 UTC (UK/IE morning, Sydney
   afternoon) and 23:00 UTC (NY/LA evening — primary US slot, London
   late-night, Sydney morning).
-- **Lead time:** Content generated **24 hours before** start
-  (`generateTournamentContent` at T-24h).
-- **Visibility:** Tournament visible **12 hours before** start
-  (`makeTournamentVisible` at T-12h).
+- **Classic idempotent slot id:** `classic_{YYYY-MM-DD}_{07utc|23utc}`.
+- **Classic — generation + finalize (cron `0 7,23 * * *` UTC):**
+  `generateClassicTournamentContent` builds/resumes the upcoming Classic
+  slot; `finalizeClassicTournament` rolls up the Classic slot whose window
+  just ended (rank, XP, `tournament_leaderboards/{slotId}`).
+- **Classic — visibility (cron `0 11,19 * * *` UTC):**
+  `makeClassicTournamentVisible` flips `ready` → `visible` for the slot
+  entering its pre-start visibility window (T-12h before start).
+- **LLM generation:** The **`generateClassicTournamentContent`** cron (and
+  the Classic pipeline it invokes) is the **only** AI-driven source of new
+  tournament question text. Live tournaments **never** invoke LLM generation
+  for their 20 questions.
+- **Live — doc creation (`prepareLiveTournament`):** Dedicated scheduled CF on
+  cron **`0 7,23 * * *` UTC** creates `live_tournaments/{ltId}` idempotently
+  (same slot clock as Classic; initial shape includes `status: "scheduled"`,
+  `q_ids: []`, etc.). **Independent of Classic:** Live doc creation does **not**
+  depend on Classic reaching `status: "ready"` or on Classic succeeding;
+  Classic pipeline failure does **not** block Live.
+- **Live — question binding:** **`q_ids` are populated from `questions_public`
+  at tournament start** (server-side selection via `runLiveTournament`), not
+  when the Live doc is first created and not via LLM at doc-create time.
 - **Push:** Sent **5 minutes before** Live tournament start. Push is
   exempt from quiet hours queue (time-critical).
 
 ### Categories — 20 total, 10-day full rotation
+**Classic only:** The list below is the human-readable map to canonical
+category ids; **`category_rotation/state` applies only to Classic**
+(single-category per Classic slot). **Live** is mixed-category by design
+and does **not** participate in this rotation.
+
 History, Geography, Movies & TV, Music, Sports, Science, Technology,
 Literature, Art, Food & Drink, Animals, Nature, Pop Culture, Mythology,
 Video Games, Fashion, Astrology, Health, Space, World Capitals.
 
-Rotation index stored in `category_rotation/state` (single doc).
+Rotation index stored in `category_rotation/state` (single doc), Classic
+tournaments only.
 
 ### Per-trigger output
-- **20 questions total** (EN only). Generated by LLM via `LLMService`
-  (provider fallback chain — Gemini Flash → GPT-4o-mini → Claude Haiku).
-- All 20 questions written to `questions_public` (the global pool).
-- Same 20 questions used as the tournament's question set.
-- **Two tournaments created per trigger:** 1 Classic + 1 Live (sharing
-  the same 20 questions).
-- → **4 tournaments per 12h** (07:00 UTC classic + live, 23:00 UTC
-  classic + live).
+- **Parallel jobs (not chained):** Each 07:00 UTC and 23:00 UTC clock tick
+  schedules **two independent cron paths** that share only the slot timing:
+  **(a)** Classic generation (LLM-driven, single-category), **(b)** Live doc
+  preparation (`prepareLiveTournament`, no LLM). Neither waits on the other's
+  outcome.
+- **Classic — each trigger (07:00 UTC and 23:00 UTC):** **20 questions**
+  (EN only), generated by LLM via `LLMService` (provider fallback chain —
+  Gemini Flash → GPT-4o-mini → Claude Haiku). All 20 are written to
+  `questions_public` (the global pool) and bound to the Classic
+  `tournaments/{slotId}` for that slot. **One Classic tournament per
+  trigger** → **40 LLM-generated questions/day** (2 triggers × 20). Live
+  does **not** reuse Classic's `q_ids`.
+- **Live — doc + questions:** `prepareLiveTournament` creates the Live doc for
+  the slot (`q_ids` empty at create). Its **20 questions are not generated or
+  chosen at doc-create time.** At **tournament start**, `runLiveTournament`
+  will select 20 rows from `questions_public` (**equal 4/4/4/4/4 distribution
+  across difficulties 1–5**; mixed-category). No LLM call for Live question text.
+- → **4 tournaments per day** (2 Classic + 2 Live). **AI pipeline load for
+  tournaments:** **40 new questions/day** from Classic generation only — not
+  80.
 
 ### Bootstrap pool
 - **Pre-launch seed: 4,000 questions** (20 categories × 200 each).
@@ -452,8 +508,13 @@ Any of moderation fail / verifier fail / dedup hit → discard and
 regenerate. **No flag-and-keep. No retry of the same prompt** — the
 next attempt is a fresh generation.
 
+**Planned complement:** prompt-level dedup avoidance (e.g. feed last *N*
+questions per category into the generator prompt so the LLM avoids
+near-duplicate "popular" stems). Tracks alongside reactive embedding
+dedup; see `BRAINJAMIN_TODO.md` § P1 (generator prompt dedup avoidance).
+
 ### Affected Cloud Functions
-- `generateTournamentContent` — uses LLMService + verifier + dedup
+- `generateClassicTournamentContent` — uses LLMService + verifier + dedup
 - `generateArenaQuestions` (custom topic path) — uses LLMService + verifier
 - `selectDailyQuestion` — pool-only, no LLM
 - `findOrCreateDuelMatch` — pool-only, no LLM
@@ -461,9 +522,11 @@ next attempt is a fresh generation.
 ### Cost projection
 - Per question: ~2 LLM calls (generator + correctness verifier) + 1
   embedding call. Per question ~$0.0002 (Gemini Flash dominant).
-- Daily generation: ~40 questions (tournament engine) + ad-hoc Arena
+- Daily generation: ~40 questions (Classic tournament engine only) + ad-hoc Arena
   custom topics → ~50-100/day → **$0.50-2/day → $15-60/month** in
   steady state.
+- **Live tournaments do not invoke the AI pipeline** — they consume from the
+  existing pool. Cost projection is unchanged from prior versions.
 - Seed batch (4,000 questions, one-time): ~$1-3.
 - Provider fallback bursts in incident months: +$5-15.
 
@@ -844,15 +907,38 @@ Single user-app target. Admin lives **inside** the user app at
 ## DATA MODEL — key collections
 
 ### Game content
-- `tournaments`, `tournament_sessions` — Classic tournaments + per-user sessions
-- `live_tournaments`, `live_participants/{tid}/users/{uid}`,
-  `live_questions`, `live_results` — Live tournament state machine,
-  driven by `runLiveTournament` server loop. `status` includes
-  `"no_participants"` for empty-lobby skip path.
+- `tournaments/{slotId}` (Classic) — `slot_id`, `slot_key` (`07utc` \| `23utc`), `mode: "classic"`, `status` ∈ `generating` \| `ready` \| `visible` \| `ended` \| `generation_failed`, `category_id`, `starts_at`, `ends_at`, `q_ids[]`, `generated_count`, `ready_at`, `visible_at`, `ended_at`, `failed_at`, `failure_reason`, `failed_at_index`, `attempts_summary` (JSON string when generation aborts), `total_participants`, `created_at`, `updated_at`.
+- `tournament_sessions/{sessionId}` — `session_id`, `slot_id`, `uid`, `status` ∈ `in_progress` \| `submitted`, `shuffled_questions[]`, `shuffled_correct_indices[]`, `client_questions_snapshot[]`, `question_ids[]`, `answers[]`, `correct_count`, `rank`, `xp_awarded`, `xp_granted_at`, `submitted_at`, `created_at`, `updated_at`.
+- `tournament_leaderboards/{slotId}` — denormalized rollup after Classic finalize: `slot_id`, `ended_at`, `total_participants`, `top_100[{rank, uid, display_name, correct_count, submitted_at}]`, `created_at`.
+- **Live (state machine)** — `live_tournaments/{ltId}`, `live_participants/{ltId}/users/{uid}`,
+  `live_questions/{ltId}/q/{qIndex}`, `live_results/{ltId}/users/{uid}`. Driven by
+  `runLiveTournament` / `finalizeLiveTournament`. **Created by `prepareLiveTournament`**
+  (independent of Classic). **`q_ids` populated at tournament start** from
+  `questions_public` (**equal 4/4/4/4/4 across difficulties 1–5**; mixed-category); not
+  shared with Classic `q_ids`. `live_tournaments` includes `status` (e.g. `scheduled`,
+  `running`, `ended`, `no_participants`, `no_pool_questions`, `generation_failed`),
+  `starts_at`, `q_ids`, `current_question`, `reveal_active`, `late_join_closed`,
+  `total_participants`, `last_heartbeat_at`, **`lock_holder`**, **`lock_expires_at`**
+  (doc lease, Sprint 4.3 Step 2a-fix), **`finalized_at`**, **`top_100`** (rank rollup),
+  **`total_finalized_participants`**, timestamps. **`live_questions/{ltId}/q/{qIndex}`:**
+  `q_id`, `question_text`, `options` (4 strings), `difficulty`, `category`,
+  `started_at`, **`correct_index`** (null until reveal). **`live_results/{ltId}/users/{uid}`:**
+  `uid`, `correct_count`, `total_answer_ms`, `raw_answers`, `submitted_at`, `scored`,
+  `rank`, `xp_awarded`, `xp_granted_at`.
 - `arenas`, `arena_questions/{arenaId}/q/{qId}`, `arena_participants` —
   user-created arenas with `status: "preparing" | "scheduled" | "active"
   | "ended" | "expired"`
-- `duels`, `duel_questions` — async 1v1 games
+- `duels`, `duel_questions` — async 1v1 games. `duels/{duelId}.status`
+  state machine: `waiting` (created, no opponent yet) → `matched`
+  (opponent attached before creator finished) OR `player1_done`
+  (creator finished solo before opponent attached) → `player2_done`
+  or back to `player1_done` after first submit → `completed` after
+  second submit. `expired` is terminal. The random matcher and
+  invite join both accept `player2_id == null AND status IN
+  (waiting, player1_done)` to allow attaching an opponent to a
+  duel where the creator already finished. `duel_questions` are
+  written at `createDuel` time (Model A), not lazily on first
+  `getDuelQuestions` call.
 - `duel_queue/{uid}` — matchmaking queue (no `_lang` segmentation; EN-only)
 - `daily_questions/{dateKey}` — single document per day (no `_lang` suffix)
 - `daily_answers` — user submissions
@@ -868,8 +954,7 @@ Single user-app target. Admin lives **inside** the user app at
 - `archived_embeddings` — V2 (cold storage for archived embeddings)
 - `used_questions/{uid}/seen/{qId}` — per-user "seen in last 30 days"
   dedup (TTL semantics enforced at read time)
-- `category_rotation/state` — single doc, rotation index for tournament
-  engine
+- `category_rotation/state` — single doc: `currentIndex`, `lastRotatedAt`, `updatedAt`, `categories[]` (20 canonical ids, snake_case — same order as `functions/src/shared/categories.ts`: history, geography, movies_tv, music, sports, science, technology, literature, art, food_drink, animals, nature, pop_culture, mythology, video_games, fashion, astrology, health, space, world_capitals)
 - `blocked_terms/{en}` — content filter for custom Arena topics
 - `blocked_terms/usernames` — content filter for username creation/change
 - `ai_cache` — LLM response cache. Each entry has `expiresAt: timestamp`
@@ -896,6 +981,8 @@ Single user-app target. Admin lives **inside** the user app at
 - `leaderboards/weekly_{weekKey}` — denormalized top 100 by weekly XP,
   rebuilt by `resetWeeklyLeaderboard` CF
 - `self_test_leaderboard/{categoryId}_{weekKey}` — Self-Test specific
+- `tournament_leaderboards/{slotId}` — Classic tournament top 100 after
+  `finalizeClassicTournament` (see Game content)
 
 ### Achievements (V1)
 - `achievements/{uid}/earned/{achievementId}` — per-user earned rozet
@@ -937,11 +1024,12 @@ Single user-app target. Admin lives **inside** the user app at
 - `legal_docs` — Privacy Policy + ToS versioned content
 
 ### Anti-cheat / timing
-- `live_tournaments/{ltId}` includes: `currentQuestion`, `revealActive`,
-  `lateJoinClosed`, `lastHeartbeatAt`, `status` ∈ {scheduled, running,
-  ended, no_participants}
-- `live_questions/{ltId}/q/{qIndex}.startedAt: serverTimestamp`
-- `live_results/.../answers/{qIndex}.submittedAt: serverTimestamp`
+- `live_tournaments/{ltId}` — server-authoritative timing fields include
+  `current_question`, `reveal_active`, `late_join_closed`, `last_heartbeat_at`,
+  `status`, plus lease fields `lock_holder`, `lock_expires_at` where applicable.
+- `live_questions/{ltId}/q/{qIndex}.started_at` — server timestamps for question
+  windows; per-question submits are scored server-side (`submitLiveAnswers`).
+- `live_results/{ltId}/users/{uid}.submitted_at` — server timestamp on result rows.
 - All score calculation is server-side (`finalizeLiveTournament` and
   `finalizeClassicTournament`). Client `score` value is candidate only.
 
@@ -953,10 +1041,22 @@ V1 Cloud Functions are organized into the groups below. Authoritative
 list of exports lives in `functions/src/index.ts` — query the file
 directly for exact names.
 
-- **Tournament engine** — content generation (T-24h), visibility
-  (T-12h), Live start + run loop (with empty-lobby `no_participants`
-  short-circuit), push (T-5min), Classic finalize (T+24h), Live
-  finalize (dynamic post-Q20)
+- **Tournament engine** — Classic: scheduled `generateClassicTournamentContent`,
+  `makeClassicTournamentVisible`, `finalizeClassicTournament`; callables
+  `getClassicTournamentQuestions`, `submitClassicTournamentAnswers`,
+  `getClassicTournamentReveal`. **Live (deployed):** **`prepareLiveTournament`**
+  (scheduled `0 7,23 * * *` UTC; idempotent doc creator for `live_tournaments/{ltId}`,
+  no LLM, no Classic dependency). **`runLiveTournament`** (scheduled every minute;
+  lease-protected server loop; at start pulls 20 questions from `questions_public`
+  with **4/4/4/4/4** difficulty distribution). **`submitLiveAnswers`** (callable;
+  server-side scoring; clamps per-answer elapsed to `[0, 15000]` ms). **`finalizeLiveTournament`**
+  (scheduled every minute; lease-protected; competition ranking, XP grants, `top_100`
+  rollup). **`joinLiveTournament`** (callable; idempotent join with banned-check).
+  **`fastForwardLiveStart`** (admin-only callable; smoke helper; bumps `starts_at`
+  forward by 1–60 minutes). Live question selection uses **no LLM** and **does not**
+  share Classic's LLM path or Classic `q_ids`. **Parked (Step 2c):** watchdog stall
+  recovery + T-5min push (see BRAINJAMIN_TODO.md). **Classic XP and rank** are
+  written only in `finalizeClassicTournament`, not at submit time.
 - **Daily / Self-Test / Duel** — pool-only selection + matchmaking
   callables (no LLM)
 - **Arena** — callable: LLM for custom topic, pool for pre-set
@@ -1053,6 +1153,9 @@ Do NOT enable on admin/seed/debug functions.
   `status === "ended"`. Active tournaments return summary only.
 - **Live:** `runLiveTournament` is the single authority on question
   advancement. Clients are listeners only.
+- **Live reveal:** `correct_index` on each `live_questions/{ltId}/q/{qIndex}` doc is
+  **null** until the server sets `reveal_active` for that beat; clients observe the
+  field flip from **null → 0..3** at reveal.
 
 ### Anti-cheat
 - **Timing:** Server timestamps mandatory for any temporally meaningful
@@ -1202,6 +1305,11 @@ lives in BRAINJAMIN_TODO.md § APPENDIX B.
   (e.g. `use_build_context_synchronously`, `unawaited_futures`,
   `unused_local_variable` near logic) and flags them, even if not
   strictly required to fix.
+- **Live tournament lease (Sprint 4.3):** `LEASE_DURATION_MS = 90_000` (lock
+  self-expiry on `live_tournaments`), `LEASE_RENEWAL_INTERVAL_MS = 30_000`
+  (renewed on transactional advance writes). Owned by
+  `functions/src/shared/tournamentLease.ts` — **any change there must be reflected
+  here.**
 
 **Bootstrap / startup smoke check:** Every Cursor prompt that touches
 bootstrap, service initialization, platform-conditional code, or any

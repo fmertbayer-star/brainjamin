@@ -1,5 +1,5 @@
 # BRAINJAMIN TODO
-Last updated: 2026-05-07
+Last updated: 2026-05-09 — Sprint 4.3 backend + UI complete and deployed. End-to-end smoke pending (one ad-hoc Console step needed: delete dead `no_participants` Live docs before the next `prepareLiveTournament` tick to obtain a fresh `scheduled` doc). Step 2c (watchdog + T-5min push) parked.
 
 Operational state of the project. Sprint priorities and the active work
 thread. Recently-done log lives in `git log`. Codebase snapshot lives in
@@ -10,48 +10,9 @@ the codebase itself (`functions/src/index.ts`, `lib/features/**`,
 
 ## NEXT UP — Active Thread
 
-**Sprint 2 — Daily Question + Push Permission Soft Primer
-tamamlandı.** Bu oturumda kapanan işler:
+- **Sprint 4.3 end-to-end smoke** on Samsung SM-G990E device, real Live tournament play through Lobby → Quiz → Result. **Procedure:** Ensure at least one `live_tournaments` doc has `status: scheduled` (delete any stale `no_participants` docs and trigger `prepareLiveTournament` if none exist). Open app → Tournaments tab → Live card → Lobby → Join → call **`fastForwardLiveStart`** with `{ ltId, minutesFromNow: 3 }` → wait ~6 minutes for Q1→Q20 → Result screen with rank + XP + top 10.
 
-- FCM client scaffolding canlıda (commit `5faa2f6`):
-  `firebase_messaging` ^15.2.10 pubspec'e eklendi, iOS
-  `aps-environment=development` + `UIBackgroundModes` +
-  `UNUserNotificationCenter` delegate wiring, Android
-  `POST_NOTIFICATIONS` permission, `lib/core/services/
-  push_permission_service.dart` (`getCurrentStatus()` +
-  `requestPermission()`), bootstrap smoke log Chrome'da
-  `AuthorizationStatus.notDetermined` confirmed.
-- Push permission soft primer flow canlıda (commit `b00654c`):
-  `lib/core/services/push_primer_service.dart` (3 public method:
-  `shouldShowPrimer`, `writeCooldown`,
-  `requestAndCaptureToken` + bootstrap-time
-  `captureTokenIfAuthorized`),
-  `lib/features/push/widgets/push_primer_dialog.dart`
-  (Brainjamin-voiced AlertDialog, `barrierDismissible: false`,
-  `kIsWeb` early return), Daily submit success callback
-  (`onSubmitSuccess` → `addPostFrameCallback` → modal),
-  7-day cooldown (`users/{uid}.pushPrimerCooldownUntil` permanent /
-  `bj_push_primer_cooldown_until` SharedPreferences anonymous),
-  ARB keys `push_primer_title|body|accept|decline`. `firestore.rules`
-  `match /users/{uid}` self-managed allowlist (fcm_token,
-  fcm_token_updated_at, pushPrimerCooldownUntil, tutorialSeen,
-  profileNudgeHiddenUntil) deploy edildi. Samsung SM-G990E smoke
-  `[primer.capture] token write success` + Firestore
-  `users/{uid}.fcm_token` populated doğrulandı. Diagnostic
-  debugPrint'ler temizlendi.
-
-**Sıradaki adım: `submitReport` Cloud Function + report modal UI.**
-Daily question 3-dot overflow şu an placeholder; gerçek "Report
-this question" modal'ı (reason dropdown + 200-char free-text +
-submit toast) + `submitReport` callable (per-user 10/day cap +
-`(userId, questionId)` uniqueness + "inappropriate_content"
-reason'da Mert'e immediate FCM push) implement edilecek. Spec ref:
-BRAINJAMIN.md § REPORTING & USER MODERATION.
-
-**Sonra:** Self-Test 25-Q loop (Sprint 2'nin kalan en büyük
-parçası: kategori picker + 25-soru loop + 10-sec timer +
-`self_test_leaderboard/{categoryId}_{weekKey}` +
-`used_questions/{uid}/seen/{qId}` dedup + Self-Test coach mark).
+- **Step 2c** (watchdog + T-5min push) and the planned **`submitLiveAnswers` typed exception polish** — parked. Watchdog covers stalled tournaments where `last_heartbeat_at` is older than ~3 minutes during `running` status; T-5min push notifies users in the lobby.
 
 ---
 
@@ -159,17 +120,10 @@ parçası: kategori picker + 25-soru loop + 10-sec timer +
   1). Zero benefit at Year 1 scale, zero cost; ready when needed.
 
 ### Backend tech debt
-- **`questions_public.flagged` field backfill** — mevcut pool docs'larında
-  `flagged` field'ı yok; `selectDailyQuestion` smoke test sırasında
-  `where('flagged', '==', false).limit(50)` 0 sonuç döndü, in-memory
-  fallback ile geçildi. Sprint 4 tournament engine'i öncesinde
-  tamamlanmalı:
-  1. `pipeline.ts` yeni soru yazımında `flagged: false` default set
-     ediyor mu doğrula; etmiyor ise ekle.
-  2. Mevcut `questions_public` docs'larına tek seferlik backfill script'i
-     (`flagged: false` default).
-  3. Backfill teyit edildikten sonra `selectDailyQuestion`'daki
-     in-memory fallback bloğu kaldırılır (clean primary query path).
+- **`questions_public.flagged` backfill** — **Done (Sprint 4.1)** via seed / migration scripts. Verify `selectDailyQuestion` primary query path (remove in-memory fallback if still present).
+- **Generator prompt dedup avoidance** — LLM converges on popular questions in dense categories (history, geography). Smoke-test surfaced this: multiple attempts can hit the 0.88 cosine threshold against the existing pool. Fix: feed last N questions per category into the generator prompt as "do not generate questions similar to:". Without this, categories with established "classic" trivia are unstable as the pool grows. Pre-launch fix recommended.
+  - Sprint 4.3 smoke (2026-05-09): manual Classic trigger on `geography` aborted at index 0 with 5/5 attempts rejected as `dedup_hit`, similarity 0.997 / 0.983 / 0.998 / 0.999 / 0.999. Confirms the failure mode in dense categories. Avoid-list fix is now blocking, not nice-to-have, before launch.
+- **DEDUP_THRESHOLD restore** — currently 0.95 (smoke-only). Restore to **0.88** + redeploy `generateClassicTournamentContent`. **Highest priority — blocks production correctness** (Classic generator).
 - **`mcqShuffle` util doc sync** — BRAINJAMIN.md § CLOUD FUNCTIONS §
   Internal modules listesinde `mcqShuffle` zaten yer alıyor; commit
   `d4656ac` ile `functions/src/shared/mcqShuffle.ts` artık gerçekten
@@ -234,11 +188,23 @@ parçası: kategori picker + 25-soru loop + 10-sec timer +
   paralel.
 - **Soru kalitesi feedback loop** — `flagged: true` soruları ve user
   reports'ları prompt calibration'a geri besle. Lansman sonrası 4
-  hafta özellikle kritik. Manuel süreç V1; otomasyon V2.
+  hafta özellikle kritik. Manuel süreç V1; otomasyon V2. **Proaktif
+  tamamlayıcı:** generator prompt avoid-list (§ P1 "Generator prompt
+  dedup avoidance") yoğun kategorilerde tekrarlayan üretimi azaltır.
+- **ai_config/models Firestore doc seed** — pipeline currently falls back to in-memory defaults. Seed before launch so model strings can be hot-swapped without redeploy. Sprint 7 candidate.
+- **firebase-functions package upgrade** — currently `^6.6.0` with deprecation warnings on every deploy. Sprint 7 hygiene; breaking changes need careful test.
 - **Sign-in screen RenderFlex overflow** — at narrow viewports the four
   sign-in buttons Column overflows by 90–110px on the right. Cosmetic,
   observed during Sprint 1.6 smoke. Defer to Sprint 5 (Profile + final
   polish).
+- **`firestore.rules` banned-check null-safety pattern.** `/duels`, `/duel_questions`, `/duel_queue` were updated to use `data.get('banned', false) != true` after the original `data.banned != true` triggered a rules evaluator error when `users/{uid}` doc lacked a `banned` field. Other rule blocks that may use the same banned-check pattern (when added in future sprints) should adopt the same null-safe accessor. Pattern note for Sprint 4+.
+- **Duel invite code `BJ` strip false-positive.** `duel_join_code_screen` defensively strips a leading `BJ-` or `BJ` prefix to tolerate legacy share text. Codes that genuinely begin with `BJ` (rare per backend `crypto.randomBytes` alphabet, ~1/676) would be mis-stripped to a 4-char code and fail join. Pre-launch hygiene: tighten strip to `^BJ-` (dash required) only.
+- **Duel deep linking is V2.** Invite share message contains `https://brainjamin.com/duel/{code}` as a stub; tapping opens browser to a 404. Universal links / Android App Links / Firebase Dynamic Links to be added in V2 so the link opens the app and pre-fills the join code.
+- **Duel "My Duels" UI is V2.** No surface to view past or in-flight duels exists in V1. `DuelService.listenMyDuels` is implemented and reserved for the V2 surface.
+- **Switch-account UI is V2.** No in-app sign-out + sign-in flow. Anonymous → permanent conversion exists via `linkWithCredential`, but switching between two anonymous test accounts requires Settings → Apps → Storage → Clear data on Android. V1 launch does not need this; mention in V2 admin tooling planning.
+- **Sprint 4.3 Step 2c — Live watchdog + T-5min push.** Watchdog: scheduled CF every minute checks `live_tournaments` where `status == running` AND `last_heartbeat_at < now - 180s` AND `lock_holder` is stale; resets so the next `runLiveTournament` tick can recover. T-5min push: scheduled CF at `*/1 * * * *` checks Live docs starting in [4, 6) minutes and sends FCM to opted-in users; quiet-hours-exempt per BRAINJAMIN.md.
+- **Live `submitLiveAnswers` typed exception polish** — current implementation throws generic `LiveSubmitException` enum. Future polish: distinguish `notEnded` / `notParticipant` / `alreadyScored` cleanly with i18n-ready user copy.
+- **Live end-to-end smoke automation** — currently requires (a) `prepareLiveTournament` tick or manual delete of stale Live doc, (b) UI Lobby join, (c) `fastForwardLiveStart` callable. Wrap into a single admin CF (`seedLiveSmoke`) that prepares a fresh Live doc, joins N synthetic participants, fast-forwards `starts_at` — for repeated test cycles without UI. V2 hygiene; not a launch blocker.
 
 ### Post-launch operational rhythms
 - **Reports triage** — for first 4 launch weeks, Mert opens `reports`
@@ -393,56 +359,40 @@ for the rationale.
 
 ### Sprint 3 — Arena + Duel
 
-- 3-step Arena wizard (List vs Battle, Pre-set vs Custom, count slider,
-  start time picker)
-- Battle Arena eliminate overlay (~1.5 sec full-screen, worried-mascot)
-- Battle Arena spectator screen base (live standings + per-question
-  reveal + "Create new arena" CTA)
-- Battle Arena ended push to eliminated participants
-- `generateArenaQuestions` CF (LLM custom topic, pool pre-set category)
-- Apriori narrow topic check
-- Solo arena (1+ player) supported
-- `findOrCreateDuelMatch` CF
-- Duel queue (active 30-sec + 24-hour background)
-- Same-opponent 24-hour dedup
-- Invite link 7-day expiry
-- Coach marks: Arena 2 screens, Duel 1 screen
-- Report button on Arena + Duel surfaces
-- Duel matched + Duel complete pushes
-- Analytics: `arena_created`, `arena_joined`, `arena_completed`,
-  `duel_queued`, `duel_matched`, `duel_completed`
+**Duel: complete (Model A async).** Backend (`createDuel`, `joinDuel`,
+`getDuelQuestions`, `submitDuelAnswers`, `getDuelLobbyStats`,
+`expireDuels`) deployed; UI (`/duel`, `/duel/match-type`,
+`/duel/quiz`, `/duel/result`, `/duel/invite-share`, `/duel/join`)
+shipped; firestore.rules `/duels`, `/duel_questions`, `/duel_queue`
+use null-safe banned-check + null-guarded `player2_id` predicate;
+composite indexes for the broadened matcher + invite lookup
+deployed; result screen completed-state stats block (accuracy /
+total time / score + categories+difficulty summary line) shipped;
+smoke tested end-to-end on Samsung SM-G990E (creator-solo →
+opponent-match → completed; invite create → share → join via
+in-app code entry → completed).
+
+**Arena: not started.** Sprint 3 originally scoped Arena + Duel
+in parallel; the Duel async refactor consumed the sprint.
+Arena work — `firestore.rules` for `arenas` / `arena_questions` /
+`arena_participants`, 3-step wizard, Battle Arena eliminate
+overlay, spectator screen, ended-push, `generateArenaQuestions`
+CF — moves to Sprint 3.5 OR is folded into a future sprint per
+Mert's call.
+
+Reference architecture: BRAINJAMIN.md § PRODUCT § Arena, § DATA
+MODEL, § CLOUD FUNCTIONS.
 
 ### Sprint 4 — Tournament Engine (Classic + Live)
 
-- 20-category rotation state
-- `generateTournamentContent` (T-24h)
-- `makeTournamentVisible` (T-12h)
-- `startLiveTournament` + `runLiveTournament` server loop
-- Live `status: "no_participants"` no-op path (T+5 sec lobby check; if
-  empty, short-circuit, no follow-up push)
-- Solo Live (1 participant) supported — XP scale honored, "rank 1 of 1"
-  no asterisk
-- Late-entry-through-Q5 logic
-- `liveTournamentWatchdog` (skips `no_participants`)
-- `finalizeLiveTournament` (post-Q20) + `finalizeClassicTournament`
-  (T+24h)
-- LLMService implementation (Gemini → OpenAI → Claude fallback)
-- 2-layer verification (generator + correctness verifier)
-- Semantic dedup via embeddings (0.88 cosine, enriched buildEmbedText)
-- LLM generator prompt constraint (alcohol/tobacco/drug glamorization
-  ban)
-- Live tournament real-time UI driven by `live_tournaments/{ltId}`
-  listener
-- Score calculation server-side (`15000 - (submittedAt - startedAt)`)
-- Coach marks: Classic 1 screen, Live 1 screen
-- Live 5-min push (quiet-hours-exempt)
-- Report button: Classic surfaces (every question) + Live (reveal-only,
-  NOT during 15-sec answer window)
-- `ai_cache.expiresAt` field write at every cache entry; deploy
-  Firestore TTL policy (90-day auto-delete)
-- Stage 1 composite indexes declared in `firestore.indexes.json`
-- Analytics: `tournament_joined`, `tournament_completed`,
-  `live_late_joined`
+- **Sprint 4.1:** ✅ rules + indexes + 20-category migration + `category_rotation` init + dead-category cleanup (40 questions deleted).
+- **Sprint 4.2a:** ✅ `generateClassicTournamentContent` + `makeClassicTournamentVisible` + `finalizeClassicTournament` (status-flip only; finalize rollup added in 4.2b). Scheduled cron live.
+- **Sprint 4.2b:** ✅ `getClassicTournamentQuestions` + `submitClassicTournamentAnswers` callables. Eager session, snake_case fields. `finalizeClassicTournament` rollup logic added (leaderboard write + XP grant + rank). `tournament_leaderboards` collection rule + composite index deployed.
+- **Sprint 4.3:** ⏳ Live engine + Live UI. Not started. Largest remaining piece.
+- **Sprint 4.4a:** ✅ TournamentsTab live list + `CountdownTicker` reusable widget.
+- **Sprint 4.4b-i:** ✅ Tournament detail screen + `/tournament/:slotId` route + status-aware CTA + XP tier constants.
+- **Sprint 4.4b-ii-1:** ✅ Classic quiz screen + `/tournament/:slotId/quiz` + draft persistence (`shared_preferences`).
+- **Sprint 4.4b-ii-2:** ✅ `getClassicTournamentReveal` callable + Classic result screen + `/tournament/:slotId/result` + auto pending→finalized transition.
 
 ### Sprint 5 — Profile + Ranking + Achievements + Settings
 
