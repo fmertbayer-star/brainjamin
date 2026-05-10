@@ -1,5 +1,5 @@
 # BRAINJAMIN TODO
-Last updated: 2026-05-09 — Sprint 4.3 backend + UI complete and deployed. End-to-end smoke pending (one ad-hoc Console step needed: delete dead `no_participants` Live docs before the next `prepareLiveTournament` tick to obtain a fresh `scheduled` doc). Step 2c (watchdog + T-5min push) parked.
+Last updated: 2026-05-10 — Sprint 4.3 closed (positive). Live engine + UI deployed and validated end-to-end on Samsung SM-G990E. Race-condition finalize fix shipped (rev 00002-cuh). Three Live UX fixes shipped (scroll, players label, result-screen redesign). Multi-user / load issues to be surfaced in V1 launch testing.
 
 Operational state of the project. Sprint priorities and the active work
 thread. Recently-done log lives in `git log`. Codebase snapshot lives in
@@ -10,9 +10,9 @@ the codebase itself (`functions/src/index.ts`, `lib/features/**`,
 
 ## NEXT UP — Active Thread
 
-- **Sprint 4.3 end-to-end smoke** on Samsung SM-G990E device, real Live tournament play through Lobby → Quiz → Result. **Procedure:** Ensure at least one `live_tournaments` doc has `status: scheduled` (delete any stale `no_participants` docs and trigger `prepareLiveTournament` if none exist). Open app → Tournaments tab → Live card → Lobby → Join → call **`fastForwardLiveStart`** with `{ ltId, minutesFromNow: 3 }` → wait ~6 minutes for Q1→Q20 → Result screen with rank + XP + top 10.
+- **DEDUP_THRESHOLD restore** — currently 0.95 (smoke-only). Restore to **0.88** + redeploy `generateClassicTournamentContent`. **Highest priority — blocks production correctness** (Classic generator).
 
-- **Step 2c** (watchdog + T-5min push) and the planned **`submitLiveAnswers` typed exception polish** — parked. Watchdog covers stalled tournaments where `last_heartbeat_at` is older than ~3 minutes during `running` status; T-5min push notifies users in the lobby.
+- **Generator prompt dedup avoidance (avoid-list fix)** — feed last N questions per category into the generator prompt so dense categories do not repeat into `dedup_hit` death spirals. Without this, pool growth keeps Classic generation unstable. Pre-launch blocking (detail + smoke evidence in § P1 · Backend tech debt).
 
 ---
 
@@ -388,7 +388,7 @@ MODEL, § CLOUD FUNCTIONS.
 - **Sprint 4.1:** ✅ rules + indexes + 20-category migration + `category_rotation` init + dead-category cleanup (40 questions deleted).
 - **Sprint 4.2a:** ✅ `generateClassicTournamentContent` + `makeClassicTournamentVisible` + `finalizeClassicTournament` (status-flip only; finalize rollup added in 4.2b). Scheduled cron live.
 - **Sprint 4.2b:** ✅ `getClassicTournamentQuestions` + `submitClassicTournamentAnswers` callables. Eager session, snake_case fields. `finalizeClassicTournament` rollup logic added (leaderboard write + XP grant + rank). `tournament_leaderboards` collection rule + composite index deployed.
-- **Sprint 4.3:** ⏳ Live engine + Live UI. Not started. Largest remaining piece.
+- **Sprint 4.3:** ✅ Live engine + Live UI — shipped (`finalizeLiveTournament` race-condition fix rev 00002-cuh; Live quiz scroll + players label + result-screen redesign; end-to-end smoke on Samsung SM-G990E). Multi-user / load validation → V1 launch testing.
 - **Sprint 4.4a:** ✅ TournamentsTab live list + `CountdownTicker` reusable widget.
 - **Sprint 4.4b-i:** ✅ Tournament detail screen + `/tournament/:slotId` route + status-aware CTA + XP tier constants.
 - **Sprint 4.4b-ii-1:** ✅ Classic quiz screen + `/tournament/:slotId/quiz` + draft persistence (`shared_preferences`).

@@ -1,5 +1,5 @@
 # BRAINJAMIN
-Last reviewed: 2026-05-09 — Sprint 4.3 Steps 1+2a+2a-fix+2b+3a+3b+3c complete (backend + UI deployed); Step 2c (watchdog + T-5min push) parked; end-to-end smoke pending.
+Last reviewed: 2026-05-10 — Sprint 4.3 (Live engine + UI) closed positive. Race-fix in finalizeLiveTournament + three Live UX fixes shipped. End-to-end smoke validated.
 
 Single source of structural truth for Brainjamin. Architecture, product, data
 model, security, design — locked decisions plus the implementation context
