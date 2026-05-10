@@ -240,7 +240,7 @@ own dialog; no soft primer for UMP.
 
 **3. Arena** — invite-code group quiz
 - User picks category OR types custom topic.
-- 5–25 questions, user chooses count.
+- 10 questions, fixed. User does not pick a count.
 - 2 modes:
   - **List mode:** all answer all questions, score-ranked at end.
   - **Battle Arena mode:** wrong answer eliminates you. Eliminated user
@@ -264,7 +264,7 @@ own dialog; no soft primer for UMP.
 - Invite code generated (e.g. `BJ-7K2P`) + shareable link.
 - Private only — no public/community arenas in V1.
 - Anonymous users CAN create arenas.
-- **Limit:** 10 arenas/day per user (Remote Config: `arena_max_per_day: 10`).
+- **Limit:** 3 arenas/day per user (Remote Config: `arena_max_per_day: 3`). Counter stored at `users/{uid}.dailyArenaCount.{dateKey}` (same pattern as `dailyReports.{dateKey}`).
 - **Minimum delay:** Arena's `scheduledStartAt` must be ≥ now + 10
   minutes. Validation enforced client-side AND server-side. Maximum:
   `scheduledStartAt ≤ now + 24 hours`.
@@ -274,13 +274,15 @@ own dialog; no soft primer for UMP.
   mechanic is consistent. `pruneStaleGames` does NOT cancel based on
   participant count.
 - **3-step creation wizard:** (1) Basics — List vs Battle, optional
-  name; (2) Details — Pre-set Categories vs Custom Topic, count slider
-  5–25, start time picker, duration preview; (3) Summary + "Create" CTA.
-- **Custom Topic narrow check (apriori):** Before generation, the LLM is
-  asked whether 25 distinct, high-quality, in-depth questions can be
-  generated for this topic. If no, UI warns user; user can still
-  proceed; if generation yields fewer than requested, pool-fill from
-  related category supplements.
+  name; (2) Details — Pre-set Categories vs Custom Topic, start time
+  picker, duration preview; (3) Summary + "Create" CTA.
+- **Custom Topic narrow check (apriori):** Before generation, the LLM
+  is asked whether 10 distinct, high-quality, in-depth questions can
+  be generated for this topic. Performed via
+  `checkCustomTopicViability` callable (input: `topic`). If the LLM
+  responds non-viable, UI warns the user; user can still proceed. If
+  generation yields fewer than 10, pool-fill from related category
+  supplements.
 
 **4. Duel** — async 1v1
 - 10 questions, mixed categories (one per category for variety).
@@ -508,10 +510,15 @@ Any of moderation fail / verifier fail / dedup hit → discard and
 regenerate. **No flag-and-keep. No retry of the same prompt** — the
 next attempt is a fresh generation.
 
-**Planned complement:** prompt-level dedup avoidance (e.g. feed last *N*
-questions per category into the generator prompt so the LLM avoids
-near-duplicate "popular" stems). Tracks alongside reactive embedding
-dedup; see `BRAINJAMIN_TODO.md` § P1 (generator prompt dedup avoidance).
+**Prompt-level dedup avoidance (shipped):** the generator prompt
+includes the most recent 30 question stems for the target category as
+an avoid-list. Owned by `buildGeneratorPrompt` in
+`functions/src/shared/prompts.ts` (parameter `recentStems`) and
+populated in `generateOneQuestion` in
+`functions/src/shared/pipeline.ts` via a Firestore query on
+`questions_public` ordered by `createdAt` descending, limit 30.
+Operates alongside reactive embedding dedup (0.88 cosine threshold) —
+the two are complementary, not redundant.
 
 ### Affected Cloud Functions
 - `generateClassicTournamentContent` — uses LLMService + verifier + dedup
