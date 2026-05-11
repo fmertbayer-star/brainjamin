@@ -3,6 +3,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../core/constants/firebase_config.dart';
+import '../../../core/services/auth_service.dart';
 import 'arena_models.dart';
 
 class ArenaServiceException implements Exception {
@@ -14,6 +15,21 @@ class ArenaServiceException implements Exception {
 
   @override
   String toString() => 'ArenaServiceException($code, $message)';
+}
+
+enum ArenaSubmitReason {
+  notEnded,
+  notParticipant,
+  unknown,
+}
+
+final class ArenaSubmitException implements Exception {
+  ArenaSubmitException(this.reason);
+
+  final ArenaSubmitReason reason;
+
+  @override
+  String toString() => 'ArenaSubmitException($reason)';
 }
 
 final class ArenaService {
@@ -111,7 +127,12 @@ final class ArenaService {
 
   Future<Map<String, dynamic>> generateArenaQuestions(String arenaId) async {
     try {
-      final callable = _functions.httpsCallable('generateArenaQuestions');
+      final callable = _functions.httpsCallable(
+        'generateArenaQuestions',
+        options: HttpsCallableOptions(
+          timeout: const Duration(seconds: 540),
+        ),
+      );
       final result =
           await callable.call({'arena_id': arenaId.trim()});
       return _map(result.data);
@@ -157,22 +178,137 @@ final class ArenaService {
     return out;
   }
 
-  Future<Map<String, dynamic>> submitArenaAnswers({
+  /// `arenas/{arenaId}` — authoritative quiz pacing + finalize rollup.
+  Stream<ArenaDoc?> watchArena(String arenaId) => listenToArena(arenaId);
+
+  /// `arena_questions/{arenaId}/q/{qIndex}` — question text + reveal state.
+  Stream<ArenaQuestionView?> watchActiveArenaQuestion(
+    String arenaId,
+    int qIndex,
+  ) {
+    final id = arenaId.trim();
+    if (id.isEmpty) {
+      return Stream<ArenaQuestionView?>.value(null);
+    }
+    return _firestore
+        .collection('arena_questions')
+        .doc(id)
+        .collection('q')
+        .doc('$qIndex')
+        .snapshots()
+        .map((snap) {
+      if (!snap.exists || snap.data() == null) {
+        return null;
+      }
+      try {
+        return ArenaQuestionView.fromFirestore(
+          id,
+          qIndex,
+          Map<String, dynamic>.from(snap.data()!),
+        );
+      } on Object catch (_) {
+        return null;
+      }
+    });
+  }
+
+  Stream<List<ArenaLeaderboardEntry>> watchArenaLeaderboard(String arenaId) =>
+      listenToArenaLeaderboard(arenaId);
+
+  /// Current user's row under `arena_results/{arenaId}/users/{uid}`.
+  Stream<ArenaMyResult?> watchMyArenaResult(String arenaId) {
+    final trimmed = arenaId.trim();
+    final uid = _auth.currentUser?.uid;
+    if (trimmed.isEmpty || uid == null || uid.isEmpty) {
+      return Stream<ArenaMyResult?>.value(null);
+    }
+    return _firestore
+        .collection('arena_results')
+        .doc(trimmed)
+        .collection('users')
+        .doc(uid)
+        .snapshots()
+        .map((snap) {
+      if (!snap.exists || snap.data() == null) {
+        return null;
+      }
+      try {
+        return ArenaMyResult.fromFirestore(snap);
+      } on Object catch (_) {
+        return null;
+      }
+    });
+  }
+
+  /// After `arenas/{arenaId}.status == ended`. Payload: exactly 10 rows, `q_index` 0..9.
+  Future<ArenaSubmitResult> submitArenaAnswers({
     required String arenaId,
-    required List<Map<String, dynamic>> answers,
+    required List<ArenaAnswerInput> answers,
   }) async {
+    await BrainjaminAuthService.ensureSignedIn();
+    if (!BrainjaminAuthService.isSignedIn) {
+      throw ArenaSubmitException(ArenaSubmitReason.unknown);
+    }
+
+    final id = arenaId.trim();
     try {
-      final callable = _functions.httpsCallable('submitArenaAnswers');
-      final result = await callable.call({
-        'arena_id': arenaId.trim(),
-        'answers': answers,
-      });
-      return _map(result.data);
-    } on FirebaseFunctionsException catch (e) {
-      throw ArenaServiceException(
-        e.code,
-        e.message ?? e.code,
+      final callable = _functions.httpsCallable(
+        'submitArenaAnswers',
+        options: HttpsCallableOptions(
+          timeout: const Duration(seconds: 60),
+        ),
       );
+      final result = await callable.call<Map<String, dynamic>>({
+        'arena_id': id,
+        'answers': answers
+            .map(
+              (a) => <String, dynamic>{
+                'q_index': a.qIndex,
+                'selected_index': a.selectedIndex,
+                'submitted_at_ms': a.submittedAtMs,
+              },
+            )
+            .toList(),
+      });
+      final m = _map(result.data);
+      final ccRaw = m['correct_count'];
+      final tamRaw = m['total_answer_ms'];
+      final correctCount = ccRaw is int
+          ? ccRaw
+          : ccRaw is num
+              ? ccRaw.toInt()
+              : 0;
+      final totalAnswerMs = tamRaw is int
+          ? tamRaw
+          : tamRaw is num
+              ? tamRaw.toInt()
+              : 0;
+      return ArenaSubmitResult(
+        arenaId: id,
+        correctCount: correctCount,
+        totalAnswerMs: totalAnswerMs,
+        scored: m['scored'] == true,
+      );
+    } on FirebaseFunctionsException catch (e) {
+      final msg = '${e.message ?? ''} ${e.details ?? ''}'.toLowerCase();
+
+      if (msg.contains('already scored') || msg.contains('already_scored')) {
+        return ArenaSubmitResult(
+          arenaId: id,
+          correctCount: 0,
+          totalAnswerMs: 0,
+          scored: true,
+        );
+      }
+
+      if (msg.contains('arena_not_ended')) {
+        throw ArenaSubmitException(ArenaSubmitReason.notEnded);
+      }
+      if (msg.contains('not_a_participant')) {
+        throw ArenaSubmitException(ArenaSubmitReason.notParticipant);
+      }
+
+      throw ArenaSubmitException(ArenaSubmitReason.unknown);
     }
   }
 
@@ -246,23 +382,6 @@ final class ArenaService {
       }
       return ArenaParticipant.fromFirestore(uid, s.data()!);
     });
-  }
-
-  /// Public display names for lobby list (batch read).
-  Future<Map<String, String?>> loadParticipantDisplayNames(
-    List<String> uids,
-  ) async {
-    final out = <String, String?>{};
-    for (final uid in uids.toSet()) {
-      final pub = await _firestore.collection('users_public').doc(uid).get();
-      final name = pub.data()?['displayName'];
-      if (name is String && name.trim().isNotEmpty) {
-        out[uid] = name.trim();
-      } else {
-        out[uid] = null;
-      }
-    }
-    return out;
   }
 
   Future<ArenaParticipant?> getMyParticipantDoc(String arenaId) async {

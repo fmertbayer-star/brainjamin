@@ -1,7 +1,11 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/mascot_empty_state.dart';
 import '../data/arena_models.dart';
 import '../data/arena_service.dart';
@@ -14,7 +18,8 @@ class ArenaQuizScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final arenaId = GoRouterState.of(context).uri.queryParameters['arenaId']?.trim();
+    final arenaId =
+        GoRouterState.of(context).uri.queryParameters['arenaId']?.trim();
     if (arenaId == null || arenaId.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.arena_quiz_title)),
@@ -75,7 +80,6 @@ class ArenaQuizScreen extends StatelessWidget {
           );
         }
         if (arena.mode == 'battle') {
-          // TODO: Battle Arena (Sprint 3.5d)
           return Scaffold(
             appBar: AppBar(title: Text(l10n.arena_quiz_title)),
             body: MascotEmptyState(
@@ -99,114 +103,53 @@ class _ArenaListQuizBody extends StatefulWidget {
   State<_ArenaListQuizBody> createState() => _ArenaListQuizBodyState();
 }
 
-class _ArenaListQuizBodyState extends State<_ArenaListQuizBody>
-    with SingleTickerProviderStateMixin {
-  static const int _questionTimeMs = 15000;
-
-  final ArenaQuizController _controller = ArenaQuizController();
-  late final AnimationController _timer;
+class _ArenaListQuizBodyState extends State<_ArenaListQuizBody> {
+  ArenaQuizController? _controller;
 
   @override
   void initState() {
     super.initState();
-    _timer = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: _questionTimeMs),
-    )..addStatusListener(_onTimerStatus);
-    _bootstrap();
-  }
-
-  Future<void> _bootstrap() async {
-    await _controller.load(widget.arenaId);
-    if (!mounted) return;
-    if (_controller.status == ArenaQuizStatus.ready) {
-      _startQuestionTimer();
-    }
-  }
-
-  void _startQuestionTimer() {
-    _timer
-      ..stop()
-      ..reset()
-      ..forward();
-  }
-
-  void _onTimerStatus(AnimationStatus status) {
-    if (status != AnimationStatus.completed) return;
-    if (!_quizInProgress) return;
-    if (_controller.revealing) return;
-    _recordAndReveal(-1);
-  }
-
-  bool get _quizInProgress {
-    final qs = _controller.questions;
-    return _controller.status == ArenaQuizStatus.ready &&
-        qs != null &&
-        qs.isNotEmpty &&
-        _controller.currentIndex < qs.length;
-  }
-
-  void _recordAndReveal(int selectedOption) {
-    if (!_quizInProgress) return;
-    if (_controller.revealing) return;
-    _timer.stop();
-    final elapsedMs =
-        (_timer.value * _questionTimeMs).round().clamp(0, _questionTimeMs);
-    _controller.recordReveal(
-      selectedOption: selectedOption,
-      elapsedMs: elapsedMs,
+    _controller = ArenaQuizController(
+      arenaId: widget.arenaId,
+      onSubmittedSuccess: _navigateToResult,
+      onArenaAborted: _abortToArenaHome,
     );
-    Future<void>.delayed(const Duration(milliseconds: 600), _afterReveal);
+    _controller!.addListener(_onCtrl);
   }
 
-  Future<void> _afterReveal() async {
-    if (!mounted) return;
-    await _controller.advanceOrSubmit(widget.arenaId);
-    if (!mounted) return;
-    if (_controller.status == ArenaQuizStatus.submitted) {
-      final uri = Uri(
-        path: '/arena/result',
-        queryParameters: {'arenaId': widget.arenaId},
-      );
-      context.go(uri.toString());
-      return;
-    }
-    if (_controller.status == ArenaQuizStatus.error) {
-      final l10n = AppLocalizations.of(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${l10n.arena_quiz_submit_error}\n${_controller.error ?? ''}',
-          ),
-          action: SnackBarAction(
-            label: l10n.arena_quiz_retry,
-            onPressed: _retrySubmit,
-          ),
-        ),
-      );
-      return;
-    }
-    if (_controller.status == ArenaQuizStatus.ready && !_controller.revealing) {
-      _startQuestionTimer();
+  void _onCtrl() {
+    if (mounted) {
+      setState(() {});
     }
   }
 
-  Future<void> _retrySubmit() async {
-    await _controller.submit(widget.arenaId);
-    if (!mounted) return;
-    if (_controller.status == ArenaQuizStatus.submitted) {
+  void _navigateToResult() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
       context.go(
         Uri(
           path: '/arena/result',
           queryParameters: {'arenaId': widget.arenaId},
         ).toString(),
       );
-    }
+    });
   }
 
-  Future<bool> _showQuitConfirmDialog() async {
+  void _abortToArenaHome(String message) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      context.go('/arena');
+    });
+  }
+
+  Future<void> _confirmLeave() async {
     final l10n = AppLocalizations.of(context);
-    final result = await showDialog<bool>(
+    final ok = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       useRootNavigator: true,
@@ -219,7 +162,7 @@ class _ArenaListQuizBodyState extends State<_ArenaListQuizBody>
               onPressed: () => Navigator.pop(ctx, false),
               child: Text(l10n.duelQuizQuitStay),
             ),
-            TextButton(
+            FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
               child: Text(l10n.duelQuizQuitConfirm),
             ),
@@ -227,50 +170,154 @@ class _ArenaListQuizBodyState extends State<_ArenaListQuizBody>
         );
       },
     );
-    return result ?? false;
+    if (ok == true && mounted) {
+      context.go('/arena');
+    }
   }
 
   @override
   void dispose() {
-    _timer.removeStatusListener(_onTimerStatus);
-    _timer.dispose();
-    _controller.dispose();
+    _controller?.removeListener(_onCtrl);
+    _controller?.dispose();
     super.dispose();
   }
 
-  ButtonStyle? _buildOptionStyle(
-    int index,
-    ArenaQuestionView question,
-  ) {
-    if (!_controller.revealing) return null;
-    final correctIndex = question.correctIndex;
-    Color? bgColor;
-    final sel = _controller.selectedOption;
-    final isSelected = sel == index;
-    if (correctIndex != null && correctIndex == index) {
-      bgColor = Colors.green;
-    } else if (correctIndex == null && isSelected && sel != -1) {
-      bgColor = Colors.green;
-    } else if (sel == -1) {
-      bgColor = null;
-    } else if (isSelected) {
-      bgColor = Colors.red;
-    } else {
-      bgColor = null;
+  int _answerSecondsCeil(int ms) {
+    if (ms <= 0) {
+      return 0;
     }
-    if (bgColor == null) return null;
-    return ElevatedButton.styleFrom(backgroundColor: bgColor);
+    return max(1, (ms + 999) ~/ 1000);
+  }
+
+  int _revealSecondsCeil(int ms) {
+    if (ms <= 0) {
+      return 0;
+    }
+    return max(1, (ms + 999) ~/ 1000);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final c = _controller;
+    if (c == null) {
+      return const Scaffold(body: SizedBox.shrink());
+    }
 
-    if (_controller.status == ArenaQuizStatus.loading ||
-        _controller.status == ArenaQuizStatus.idle) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.arena_quiz_title)),
-        body: Center(
+    final qForReport = c.currentQuestion?.reportQuestionId ?? 'arena_unknown';
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) {
+          return;
+        }
+        await _confirmLeave();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.arena_quiz_title),
+          actions: [
+            ArenaOverflowMenu(questionId: qForReport),
+          ],
+        ),
+        body: Stack(
+          children: [
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton(
+                        onPressed: _confirmLeave,
+                        child: Text(l10n.duelQuizQuitConfirm),
+                      ),
+                    ),
+                    _buildStatusBar(context, theme, l10n, c),
+                    const SizedBox(height: 16),
+                    Expanded(child: _buildMainBody(context, theme, l10n, c)),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.arena_lobby_participants(c.arenaDoc?.participantCount ?? 0),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: BrainjaminColors.onSurfaceMuted,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            ),
+            if (c.phase == ArenaQuizPhase.submitting) _submittingOverlay(theme, l10n),
+            if (c.phase == ArenaQuizPhase.error) _errorOverlay(context, theme, l10n, c),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusBar(
+    BuildContext context,
+    ThemeData theme,
+    AppLocalizations l10n,
+    ArenaQuizController c,
+  ) {
+    final cq = c.currentQuestion?.qIndex ?? c.arenaDoc?.currentQuestion;
+    final qLabel = cq != null
+        ? l10n.arena_quiz_progress(cq + 1, ArenaQuizController.kQuestionCount)
+        : l10n.arena_quiz_loading;
+
+    Widget right;
+    if (c.phase == ArenaQuizPhase.answering) {
+      final sec = _answerSecondsCeil(c.answerCountdownMs);
+      right = Text(
+        l10n.arena_quiz_timer(sec),
+        style: theme.textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.w800,
+          color: BrainjaminColors.brandOrange,
+        ),
+      );
+    } else if (c.phase == ArenaQuizPhase.revealing) {
+      right = Text(
+        l10n.arena_quiz_reveal_label,
+        style: theme.textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.w800,
+          color: BrainjaminColors.onSurfaceMuted,
+        ),
+      );
+    } else {
+      right = const SizedBox.shrink();
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            qLabel,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        right,
+      ],
+    );
+  }
+
+  Widget _buildMainBody(
+    BuildContext context,
+    ThemeData theme,
+    AppLocalizations l10n,
+    ArenaQuizController c,
+  ) {
+    switch (c.phase) {
+      case ArenaQuizPhase.loading:
+        return Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -279,104 +326,246 @@ class _ArenaListQuizBodyState extends State<_ArenaListQuizBody>
               Text(l10n.arena_quiz_loading),
             ],
           ),
-        ),
-      );
+        );
+      case ArenaQuizPhase.awaitingStart:
+        return MascotEmptyState(
+          title: l10n.arena_quiz_awaiting_start_title,
+          body: l10n.arena_quiz_awaiting_start_body,
+        );
+      case ArenaQuizPhase.answering:
+      case ArenaQuizPhase.revealing:
+        final q = c.currentQuestion;
+        if (q == null) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 12),
+                Text(l10n.arena_quiz_loading),
+              ],
+            ),
+          );
+        }
+        return _questionPanel(context, theme, l10n, c, q);
+      case ArenaQuizPhase.submitting:
+        return const SizedBox.shrink();
+      case ArenaQuizPhase.submitted:
+        return Center(
+          child: Text(
+            l10n.arena_quiz_submitted_body,
+            style: theme.textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+        );
+      case ArenaQuizPhase.error:
+        return const SizedBox.shrink();
     }
+  }
 
-    if (_controller.status == ArenaQuizStatus.error &&
-        _controller.questions == null) {
-      return Scaffold(
-        appBar: AppBar(title: Text(l10n.arena_quiz_title)),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
+  Widget _questionPanel(
+    BuildContext context,
+    ThemeData theme,
+    AppLocalizations l10n,
+    ArenaQuizController c,
+    ArenaQuestionView q,
+  ) {
+    final text = q.question;
+    final options = q.options;
+    final correct = q.correctIndex;
+    final qIndex = q.qIndex;
+
+    final selected = c.localSelectionsSnapshot[qIndex];
+    final revealing = c.phase == ArenaQuizPhase.revealing;
+    final answered = selected != null;
+
+    return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: [
+          Text(
+            text,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+              height: 1.25,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (c.phase == ArenaQuizPhase.answering && answered) ...[
+            const SizedBox(height: 16),
+            Text(
+              l10n.arena_quiz_answered_waiting,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: BrainjaminColors.onSurfaceMuted,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          if (revealing) ...[
+            const SizedBox(height: 12),
+            Text(
+              l10n.arena_quiz_reveal_next_in(
+                _revealSecondsCeil(c.revealCountdownMs),
+              ),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: BrainjaminColors.brandOrange,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          const SizedBox(height: 24),
+          for (var i = 0; i < 4; i++) ...[
+            if (i > 0) const SizedBox(height: 10),
+            _OptionButton(
+              label: i < options.length ? options[i] : '',
+              index: i,
+              selected: selected == i,
+              revealing: revealing,
+              correctIndex: correct,
+              userSelected: selected,
+              onTap: () => c.selectOption(i),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _submittingOverlay(ThemeData theme, AppLocalizations l10n) {
+    return ColoredBox(
+      color: Colors.black54,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(
+              l10n.arena_quiz_submitting,
+              style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _errorOverlay(
+    BuildContext context,
+    ThemeData theme,
+    AppLocalizations l10n,
+    ArenaQuizController c,
+  ) {
+    return ColoredBox(
+      color: Colors.black87,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text('${l10n.arena_quiz_submit_error}\n${_controller.error ?? ''}'),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: () => context.go('/arena'),
-                child: Text(l10n.arena_quiz_error_back),
+              Text(
+                l10n.arena_quiz_submit_error,
+                style: theme.textTheme.titleMedium?.copyWith(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+              if (c.submitError != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  c.submitError!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.white70,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: () => unawaited(c.retrySubmit()),
+                child: Text(l10n.arena_quiz_retry),
               ),
             ],
           ),
         ),
-      );
+      ),
+    );
+  }
+}
+
+class _OptionButton extends StatelessWidget {
+  const _OptionButton({
+    required this.label,
+    required this.index,
+    required this.selected,
+    required this.revealing,
+    required this.correctIndex,
+    required this.userSelected,
+    required this.onTap,
+  });
+
+  final String label;
+  final int index;
+  final bool selected;
+  final bool revealing;
+  final int? correctIndex;
+  final int? userSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    var bg = BrainjaminColors.brandOrange.withValues(alpha: 0.08);
+    var border = BrainjaminColors.brandOrange.withValues(alpha: 0.35);
+    var opacity = 1.0;
+
+    if (revealing && correctIndex != null) {
+      final isCorrect = index == correctIndex;
+      final isWrongPick =
+          userSelected != null && userSelected == index && userSelected != correctIndex;
+
+      if (isCorrect) {
+        bg = BrainjaminColors.success.withValues(alpha: 0.35);
+        border = BrainjaminColors.success;
+      } else if (isWrongPick) {
+        bg = Colors.red.withValues(alpha: 0.35);
+        border = Colors.red.shade700;
+      } else {
+        opacity = 0.45;
+        bg = BrainjaminColors.onSurfaceMuted.withValues(alpha: 0.08);
+        border = BrainjaminColors.onSurfaceMuted.withValues(alpha: 0.2);
+      }
+    } else if (selected) {
+      bg = BrainjaminColors.brandOrange.withValues(alpha: 0.22);
+      border = BrainjaminColors.brandOrange;
     }
 
-    final qs = _controller.questions!;
-    final idx = _controller.currentIndex;
-    final question = qs[idx];
-    final interceptBack =
-        _quizInProgress && _controller.status != ArenaQuizStatus.submitting;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.arena_quiz_progress(idx + 1, qs.length)),
-        actions: [
-          ArenaOverflowMenu(questionId: question.reportQuestionId),
-        ],
-      ),
-      body: PopScope(
-        canPop: !interceptBack,
-        onPopInvokedWithResult: (didPop, result) async {
-          if (didPop || !interceptBack) return;
-          final shouldQuit = await _showQuitConfirmDialog();
-          if (shouldQuit && context.mounted) {
-            context.go('/arena');
-          }
-        },
-        child: AnimatedBuilder(
-          animation: _timer,
-          builder: (context, _) {
-            final value = _timer.value.clamp(0.0, 1.0);
-            final seconds = ((1.0 - value) * 15).ceil().clamp(0, 15);
-
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                      Chip(label: Text(l10n.arena_quiz_timer(seconds))),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    question.question,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 16),
-                  for (var i = 0; i < question.options.length; i++) ...[
-                    ElevatedButton(
-                      style: _buildOptionStyle(i, question),
-                      onPressed: (_controller.revealing ||
-                              _controller.status == ArenaQuizStatus.submitting)
-                          ? null
-                          : () => _recordAndReveal(i),
-                      child: Text(question.options[i]),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
-                  if (_controller.status == ArenaQuizStatus.submitting) ...[
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                        const SizedBox(width: 10),
-                        Text(l10n.arena_quiz_submitting),
-                      ],
-                    ),
-                  ],
-                ],
+    return Opacity(
+      opacity: opacity,
+      child: Material(
+        color: bg,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: revealing ? null : onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: border,
+                width: selected && !revealing ? 2 : 1,
               ),
-            );
-          },
+            ),
+            child: Text(
+              label,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ),
       ),
     );

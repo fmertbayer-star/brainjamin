@@ -1363,6 +1363,7 @@
     }
   },
   "arena_lobby_anonymous": "Anonymous Player",
+  "arena_lobby_anonymous_player": "Anonymous Player",
   "arena_lobby_solo_hint": "You're flying solo — Brainjamin's still here for you.",
   "arena_lobby_invite_code_label": "Invite code",
   "arena_lobby_copy": "Copy",
@@ -1389,13 +1390,86 @@
   },
   "arena_quiz_loading": "Loading questions…",
   "arena_quiz_error_back": "Back",
-  "arena_quiz_submitting": "Submitting…",
+  "arena_quiz_submitting": "Submitting your answers…",
   "arena_quiz_submit_error": "Couldn't submit answers.",
   "arena_quiz_retry": "Retry",
+  "arena_quiz_awaiting_start_title": "Waiting for arena to start…",
+  "arena_quiz_awaiting_start_body": "The host schedule controls when the first question appears.",
+  "arena_quiz_answered_waiting": "Answer locked — waiting for reveal",
+  "arena_quiz_reveal_next_in": "Next question in {seconds}s",
+  "@arena_quiz_reveal_next_in": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "arena_quiz_reveal_label": "Reveal",
+  "arena_quiz_submitted_body": "Answers saved — loading results…",
   "arena_quiz_battle_soon_title": "Battle Arena coming soon",
   "arena_quiz_battle_soon_body": "Hang tight — eliminate rounds ship in a later sprint.",
   "arena_result_title": "Arena results",
   "arena_result_waiting": "Waiting for other players…",
+  "arena_result_waiting_for_end_title": "Waiting for the arena to wrap up…",
+  "arena_result_waiting_for_end_body": "Scores appear after the last question finishes.",
+  "arena_result_tallying_title": "Brainjamin's tallying the scores…",
+  "arena_result_tallying_body": "Hang tight — results land in a moment.",
+  "arena_result_seconds_remaining": "{seconds}s remaining",
+  "@arena_result_seconds_remaining": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "arena_result_of_total": "of {total}",
+  "@arena_result_of_total": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "arena_result_correct_count": "Correct: {correct} / {total}",
+  "@arena_result_correct_count": {
+    "placeholders": {
+      "correct": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "arena_result_avg_seconds": "Avg. {seconds}s per question",
+  "@arena_result_avg_seconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "arena_result_top_10_heading": "Top 10",
+  "arena_result_leaderboard_empty": "No leaderboard rows yet.",
+  "arena_result_your_rank_section": "Your rank",
+  "arena_result_row_summary": "{correct}/{total} · {seconds}s total",
+  "@arena_result_row_summary": {
+    "placeholders": {
+      "correct": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "arena_result_error_title": "Couldn't load results",
+  "arena_result_error_body": "Something went wrong.",
+  "arena_result_timeout_title": "Brainjamin's still working on the results…",
+  "arena_result_timeout_body": "This is taking longer than usual.",
   "arena_result_your_rank": "Your rank: #{rank}",
   "@arena_result_your_rank": {
     "placeholders": {
