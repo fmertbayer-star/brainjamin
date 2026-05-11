@@ -116,7 +116,9 @@ export {createArena} from "./arena/createArena";
 export {joinArena} from "./arena/joinArena";
 export {checkCustomTopicViability} from "./arena/checkCustomTopicViability";
 export {generateArenaQuestions} from "./arena/generateArenaQuestions";
-export {submitArenaAnswers} from "./arena/submitArenaAnswers";
+export {submitArenaAnswers} from "./callables/submitArenaAnswers";
+export {runArenaTournament} from "./scheduled/runArenaTournament";
+export {finalizeArenaTournament} from "./scheduled/finalizeArenaTournament";
 
 export {expireDuels} from "./scheduled/expireDuels";
 export {generateClassicTournamentContent} from "./scheduled/generateClassicTournamentContent";

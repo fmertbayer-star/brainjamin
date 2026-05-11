@@ -12,6 +12,13 @@ export const ARENA_MIN_LEAD_MINUTES = 10;
 export const ARENA_MAX_LEAD_HOURS = 24;
 export const ARENA_QUESTION_COUNT = 10;
 
+/** Sync tick (Sprint 3.5d-1) — mirrors Live tournament pacing. */
+export const ARENA_ANSWER_WINDOW_MS = 15_000;
+export const ARENA_REVEAL_DISPLAY_MS = 3000;
+export const QUESTIONS_PER_ARENA = 10;
+/** Late join closes when advancing past this 0-based question index (after Q3 reveal). */
+export const ARENA_LATE_JOIN_CLOSE_AT_Q_INDEX = 3;
+
 /** Two questions per difficulty 1–5 (10 total). Used by generateArenaQuestions. */
 export const ARENA_DIFFICULTY_DISTRIBUTION: ReadonlyArray<{
   difficulty: 1 | 2 | 3 | 4 | 5;
@@ -41,7 +48,11 @@ export interface ArenaQuestionDoc {
   q_index: number;
   question: string;
   options: [string, string, string, string];
-  correct_index: number;
+  /** Client-visible correct choice; null until tick reveal (see runArenaTournament Option C). */
+  correct_index: number | null;
+  /** Server copy of correct_index for reveal/scoring; written when scheduled→running. */
+  correct_index_server?: number;
+  started_at?: Timestamp | null;
   difficulty: number;
   source_type: "preset" | "custom_topic";
   source_question_id?: string;
@@ -61,8 +72,10 @@ export type ArenaSourceType = "preset" | "custom_topic";
 export type ArenaStatus =
   | "preparing"
   | "scheduled"
-  | "active"
+  | "running"
   | "ended"
+  | "no_participants"
+  | "generation_failed"
   | "expired";
 
 const MS_PER_MINUTE = 60 * 1000;

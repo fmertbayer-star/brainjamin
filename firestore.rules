@@ -243,10 +243,10 @@ service cloud.firestore {
     // =====================================================================
     // Arena (Sprint 3.5a) — invite-code group quiz. Lobby is open to any
     // signed-in non-banned user (anyone with the invite code can view).
-    // arena_questions are gated until the arena is active or ended, AND
-    // only readable by participants. All writes server-side via
-    // createArena / joinArena / generateArenaQuestions / submitArenaAnswers /
-    // finalizeArena / expireArenas Cloud Functions.
+    // arena_questions: readable when arena is scheduled, running, or ended,
+    // and caller is a participant. Writes are admin SDK only (tick + gen).
+    // createArena / joinArena / generateArenaQuestions / runArenaTournament /
+    // finalizeArenaTournament / submitArenaAnswers / expireArenas (when present).
     // =====================================================================
 
     match /arenas/{arenaId} {
@@ -275,11 +275,20 @@ service cloud.firestore {
         ) &&
         (
           get(/databases/$(database)/documents/arenas/$(arenaId)).data.status == "scheduled" ||
-          get(/databases/$(database)/documents/arenas/$(arenaId)).data.status == "active" ||
+          get(/databases/$(database)/documents/arenas/$(arenaId)).data.status == "running" ||
           get(/databases/$(database)/documents/arenas/$(arenaId)).data.status == "ended"
         ) &&
         exists(/databases/$(database)/documents/arena_participants/$(arenaId)/users/$(request.auth.uid));
       allow write: if false;
+    }
+
+    match /arena_results/{arenaId}/users/{uid} {
+      allow read: if request.auth != null &&
+        (
+          !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('banned', false) != true
+        );
+      allow create, update, delete: if false;
     }
 
     match /arena_leaderboards/{arenaId} {
