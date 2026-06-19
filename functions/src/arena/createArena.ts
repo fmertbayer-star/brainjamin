@@ -14,6 +14,7 @@ import {
   isArenaSourceType,
   utcDateKeyYyyyMmDd,
 } from "./shared";
+import {checkAchievements} from "../callables/checkAchievements";
 import {generateInviteCode} from "../shared/inviteCode";
 
 type CreateArenaRequest = {
@@ -175,6 +176,10 @@ export const createArena = onCall(
     }
 
     logger.info("createArena ok", {uid, arenaId, inviteCode});
+
+    void checkAchievements(uid, {trigger: "arena_create", payload: {}}).catch(
+      (err) => logger.error("checkAchievements", err),
+    );
 
     return {
       arena_id: arenaId,

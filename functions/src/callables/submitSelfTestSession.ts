@@ -1,6 +1,8 @@
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
+import {logger} from "firebase-functions";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {DateTime} from "luxon";
+import {checkAchievements} from "./checkAchievements";
 
 function utcIsoWeekKey(nowMs: number): string {
   return DateTime.fromMillis(nowMs, {zone: "utc"}).toFormat("kkkk-'W'WW");
@@ -162,6 +164,7 @@ export const submitSelfTestSession = onCall(
         userRef,
         {
           xp: FieldValue.increment(correctCount),
+          totalAnswered: FieldValue.increment(1),
         },
         {merge: true},
       );
@@ -183,6 +186,11 @@ export const submitSelfTestSession = onCall(
         );
       }
     });
+
+    void checkAchievements(uid, {
+      trigger: "selftest",
+      payload: {correctCount, total: 25},
+    }).catch((err) => logger.error("checkAchievements", err));
 
     return {
       correctCount,

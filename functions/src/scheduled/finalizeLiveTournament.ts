@@ -13,6 +13,7 @@ import {
 import {logger} from "firebase-functions";
 import {onSchedule} from "firebase-functions/v2/scheduler";
 
+import {checkAchievements} from "../callables/checkAchievements";
 import {liveXpForRank} from "../shared/liveScoring";
 import {
   leaseValid,
@@ -331,6 +332,13 @@ async function finalizeOneTournament(
     logger.info(
       `[finalizeLiveTournament] ltId=${ltId} finalized count=${ranked.length} xp_total=${sumXpAwarded}`,
     );
+
+    for (const row of ranked) {
+      void checkAchievements(row.uid, {
+        trigger: "tournament_join",
+        payload: {rank: row.rank},
+      }).catch((err) => logger.error("checkAchievements", err));
+    }
   } catch (e) {
     logger.error(`[finalizeLiveTournament] ltId=${ltId} error`, e);
     if (holderIdForCleanup) {

@@ -96,7 +96,7 @@ export async function generateOneQuestion(
     .collection("questions_public")
     .where("category", "==", category)
     .orderBy("createdAt", "desc")
-    .limit(30)
+    .limit(200)
     .get();
   const recentStems = recentSnap.docs
     .map((d) => d.data().question as string | undefined)

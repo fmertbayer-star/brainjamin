@@ -310,6 +310,22 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // achievements — per-user earned badges. Written by checkAchievements
+    // Cloud Function (Admin SDK). Clients read own earned subcollection only.
+    match /achievements/{uid} {
+      allow read, write: if false;
+
+      match /earned/{achievementId} {
+        allow read: if request.auth != null &&
+          request.auth.uid == uid &&
+          (
+            !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('banned', false) != true
+          );
+        allow write: if false;
+      }
+    }
+
     // Default deny for every other path. Each new collection gets
     // its own match block when its feature ships.
     match /{document=**} {

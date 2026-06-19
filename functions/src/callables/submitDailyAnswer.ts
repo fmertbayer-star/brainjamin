@@ -1,6 +1,8 @@
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
+import {logger} from "firebase-functions";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
 import {DateTime} from "luxon";
+import {checkAchievements} from "./checkAchievements";
 import {isValidTimezone} from "../shared/timezone";
 
 interface DailyQuestionDoc {
@@ -167,6 +169,7 @@ export const submitDailyAnswer = onCall(
         forgivesAvailableThisWeek,
         lastForgiveResetWeekKey,
         xp: FieldValue.increment(xpAwarded),
+        totalAnswered: FieldValue.increment(1),
       }, {merge: true});
 
       return {
@@ -178,6 +181,10 @@ export const submitDailyAnswer = onCall(
         totalXp,
       };
     });
+
+    void checkAchievements(uid, {trigger: "daily_answer", payload: {}}).catch(
+      (err) => logger.error("checkAchievements", err),
+    );
 
     return txResult;
   },

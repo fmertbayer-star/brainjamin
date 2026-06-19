@@ -99,6 +99,10 @@ export {selectDailyQuestion};
 export {selectSelfTestQuestions} from "./callables/selectSelfTestQuestions";
 export {submitDailyAnswer};
 export {submitReport};
+export {validateUsername} from "./callables/validateUsername";
+export {softDeleteAccount} from "./callables/softDeleteAccount";
+export {exportUserData} from "./callables/exportUserData";
+export {checkAchievements} from "./callables/checkAchievements";
 export {submitSelfTestSession} from "./callables/submitSelfTestSession";
 
 // Sprint 3 — Duel
@@ -121,6 +125,9 @@ export {runArenaTournament} from "./scheduled/runArenaTournament";
 export {finalizeArenaTournament} from "./scheduled/finalizeArenaTournament";
 
 export {expireDuels} from "./scheduled/expireDuels";
+export {rebuildLeaderboards} from "./scheduled/rebuildLeaderboards";
+export {resetWeeklyLeaderboard} from "./scheduled/resetWeeklyLeaderboard";
+export {purgeDeletedAccounts} from "./scheduled/purgeDeletedAccounts";
 export {generateClassicTournamentContent} from "./scheduled/generateClassicTournamentContent";
 export {makeClassicTournamentVisible} from "./scheduled/makeClassicTournamentVisible";
 export {finalizeClassicTournament} from "./scheduled/finalizeClassicTournament";

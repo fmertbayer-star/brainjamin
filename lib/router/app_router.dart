@@ -28,6 +28,10 @@ import '../features/tournaments/live_tournament_lobby_screen.dart';
 import '../features/tournaments/live_tournament_quiz_screen.dart';
 import '../features/tournaments/live_tournament_result_screen.dart';
 import '../features/tournaments/tournament_detail_screen.dart';
+import '../features/settings/account_screen.dart';
+import '../features/settings/help_screen.dart';
+import '../features/settings/settings_screen.dart';
+import '../features/username/username_creation_screen.dart';
 
 /// Single app router — no brand/admin split (Brainjamin CONTEXT).
 ///
@@ -66,6 +70,26 @@ final class AppRouter {
           path: '/',
           name: 'main',
           builder: (context, state) => const MainShell(),
+        ),
+        GoRoute(
+          path: '/username-creation',
+          name: 'username-creation',
+          builder: (context, state) => const UsernameCreationScreen(),
+        ),
+        GoRoute(
+          path: '/settings',
+          name: 'settings',
+          builder: (context, state) => const SettingsScreen(),
+        ),
+        GoRoute(
+          path: '/account',
+          name: 'account',
+          builder: (context, state) => const AccountScreen(),
+        ),
+        GoRoute(
+          path: '/help',
+          name: 'help',
+          builder: (context, state) => const HelpScreen(),
         ),
         GoRoute(
           path: '/self-test',

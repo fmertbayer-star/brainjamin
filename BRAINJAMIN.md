@@ -1,5 +1,5 @@
 # BRAINJAMIN
-Last reviewed: 2026-05-10 — Sprint 4.3 (Live engine + UI) closed positive. Race-fix in finalizeLiveTournament + three Live UX fixes shipped. End-to-end smoke validated.
+Last reviewed: 2026-06-02 — Sprint 5 partial. Avoid-list limit increased 30 → 200, geography smoke 20/20 ready verified.
 
 Single source of structural truth for Brainjamin. Architecture, product, data
 model, security, design — locked decisions plus the implementation context
@@ -511,14 +511,19 @@ regenerate. **No flag-and-keep. No retry of the same prompt** — the
 next attempt is a fresh generation.
 
 **Prompt-level dedup avoidance (shipped):** the generator prompt
-includes the most recent 30 question stems for the target category as
+includes the most recent 200 question stems for the target category as
 an avoid-list. Owned by `buildGeneratorPrompt` in
 `functions/src/shared/prompts.ts` (parameter `recentStems`) and
 populated in `generateOneQuestion` in
 `functions/src/shared/pipeline.ts` via a Firestore query on
-`questions_public` ordered by `createdAt` descending, limit 30.
-Operates alongside reactive embedding dedup (0.88 cosine threshold) —
-the two are complementary, not redundant.
+`questions_public` ordered by `createdAt` descending, limit 200. The
+limit was raised from 30 to 200 on 2026-06-02 after a geography smoke
+showed two repeat-offender stems (ranks 60–61 of 66 in the geography
+pool) falling outside the recent-30 window and triggering a
+dedup-hit death spiral; the 200-limit re-smoke completed 20/20 with
+zero dedup_hit rejections. Operates alongside reactive embedding
+dedup (0.88 cosine threshold) — the two are complementary, not
+redundant.
 
 ### Affected Cloud Functions
 - `generateClassicTournamentContent` — uses LLMService + verifier + dedup
@@ -1074,9 +1079,10 @@ directly for exact names.
   NOT apply; solo arena is valid)
 - **Leaderboards** — hourly rebuild (global + Self-Test category),
   weekly Sunday 23:59 UTC reset
-- **Identity** — `validateUsername` atomic transaction across
-  `usernames/`, `users.displayName`, `users_public.displayName`;
-  enforces format, block list, 30-day cooldown
+- **Identity** — `validateUsername` — **implemented (Sprint 5).**
+  Deployed Sprint 5. Atomic transaction across `usernames/{lowercase}`,
+  `users/{uid}`, `users_public/{uid}`. Block list via `bad-words` npm +
+  `blocked_terms/usernames`. 30-day cooldown. `forceRename` bypass.
 - **Achievements** — auth-trigger + game-event-trigger, idempotent
 - **Notifications** — daily reminder (local 19:00), streak-at-risk
   (local 22:30, quiet-hours-exempt), duel/arena lifecycle pushes,
@@ -1096,6 +1102,8 @@ directly for exact names.
   pre-launch seed), `seedLegalDocs`, one-shot launch asset functions
 
 ### Internal modules (not deployable functions)
+- `bad-words` npm package — live dependency in `functions/package.json`
+  (username profanity filter; used by `validateUsername`)
 - `LLMService` — provider fallback chain (Gemini → OpenAI → Claude)
 - `ServerTimeService` — client-side time sync (Flutter)
 - `pickVerifierProvider` — generator-vs-verifier asymmetry helper

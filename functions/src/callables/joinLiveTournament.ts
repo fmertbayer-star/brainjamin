@@ -1,5 +1,7 @@
 import {FieldValue, getFirestore} from "firebase-admin/firestore";
+import {logger} from "firebase-functions/v2";
 import {HttpsError, onCall} from "firebase-functions/v2/https";
+import {checkAchievements} from "./checkAchievements";
 
 type JoinLiveRequest = {ltId?: string};
 
@@ -34,7 +36,7 @@ export const joinLiveTournament = onCall<JoinLiveRequest, Promise<JoinLiveRespon
       .collection("users")
       .doc(uid);
 
-    return db.runTransaction(async (tx) => {
+    const response = await db.runTransaction(async (tx) => {
       const liveSnap = await tx.get(liveRef);
       if (!liveSnap.exists) {
         throw new HttpsError("not-found", "live_tournament_not_found");
@@ -70,5 +72,11 @@ export const joinLiveTournament = onCall<JoinLiveRequest, Promise<JoinLiveRespon
       });
       return {success: true as const, late_joined: lateJoined};
     });
+
+    void checkAchievements(uid, {trigger: "live_join", payload: {}}).catch(
+      (err) => logger.error("checkAchievements", err),
+    );
+
+    return response;
   },
 );

@@ -11,6 +11,7 @@ import {
 import {logger} from "firebase-functions";
 import {onSchedule} from "firebase-functions/v2/scheduler";
 
+import {checkAchievements} from "../callables/checkAchievements";
 import {classicXpForRank} from "../shared/classicScoring";
 import {nextClassicSlotStartFromNow} from "../shared/tournamentSlot";
 
@@ -175,5 +176,13 @@ export const finalizeClassicTournament = onSchedule(
     logger.info(
       `finalize ${slotId}: ${totalParticipants} participants, leaderboard + XP committed`,
     );
+
+    for (let i = 0; i < rows.length; i++) {
+      const rank = i + 1;
+      void checkAchievements(rows[i]!.uid, {
+        trigger: "tournament_join",
+        payload: {rank},
+      }).catch((err) => logger.error("checkAchievements", err));
+    }
   },
 );

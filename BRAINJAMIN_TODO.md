@@ -1,5 +1,5 @@
 # BRAINJAMIN TODO
-Last updated: 2026-05-10 — Sprint 4.3 closed (positive). Live engine + UI deployed and validated end-to-end on Samsung SM-G990E. Race-condition finalize fix shipped (rev 00002-cuh). Three Live UX fixes shipped (scroll, players label, result-screen redesign). Multi-user / load issues to be surfaced in V1 launch testing.
+Last updated: 2026-06-02 — Sprint 5 partial. Avoid-list limit 30 → 200 shipped + smoke verified (geography 20/20 ready, 0 dedup_hit). Active thread shifts to Sprint 5 remaining UI surfaces.
 
 Operational state of the project. Sprint priorities and the active work
 thread. Recently-done log lives in `git log`. Codebase snapshot lives in
@@ -10,9 +10,11 @@ the codebase itself (`functions/src/index.ts`, `lib/features/**`,
 
 ## NEXT UP — Active Thread
 
-- **DEDUP_THRESHOLD restore** — currently 0.95 (smoke-only). Restore to **0.88** + redeploy `generateClassicTournamentContent`. **Highest priority — blocks production correctness** (Classic generator).
+- ✅ **DEDUP_THRESHOLD restore** — confirmed at **0.88** (no change needed). `generateClassicTournamentContent` redeployed successfully on 2026-05-18.
 
-- **Generator prompt dedup avoidance (avoid-list fix)** — feed last N questions per category into the generator prompt so dense categories do not repeat into `dedup_hit` death spirals. Without this, pool growth keeps Classic generation unstable. Pre-launch blocking (detail + smoke evidence in § P1 · Backend tech debt).
+- ✅ **Generator prompt dedup avoidance (avoid-list fix)** — shipped 2026-06-02. Avoid-list limit raised 30 → 200 in `generateOneQuestion` (`functions/src/shared/pipeline.ts`). Geography smoke on revision 00009-giy completed 20/20 `ready`, 0 dedup_hit, 317s wall-clock. Spec updated in BRAINJAMIN.md § AI PIPELINE.
+
+- **Sprint 5 remaining UI + CF surfaces** — Profile tab achievements grid, global + weekly leaderboards (`rebuildLeaderboards`, `resetWeeklyLeaderboard`), 17 achievements + `checkAchievements` CF, unlock animation, Settings (Help/12-FAQ, Account, Push toggles, Language, Legal, Export, Delete), account lifecycle CFs (`softDeleteAccount`, `purgeDeletedAccounts`, `exportUserData`). Order to be sequenced. See § CURSOR SPRINT SEQUENCE § Sprint 5.
 
 ---
 
@@ -121,9 +123,8 @@ the codebase itself (`functions/src/index.ts`, `lib/features/**`,
 
 ### Backend tech debt
 - **`questions_public.flagged` backfill** — **Done (Sprint 4.1)** via seed / migration scripts. Verify `selectDailyQuestion` primary query path (remove in-memory fallback if still present).
-- **Generator prompt dedup avoidance** — LLM converges on popular questions in dense categories (history, geography). Smoke-test surfaced this: multiple attempts can hit the 0.88 cosine threshold against the existing pool. Fix: feed last N questions per category into the generator prompt as "do not generate questions similar to:". Without this, categories with established "classic" trivia are unstable as the pool grows. Pre-launch fix recommended.
-  - Sprint 4.3 smoke (2026-05-09): manual Classic trigger on `geography` aborted at index 0 with 5/5 attempts rejected as `dedup_hit`, similarity 0.997 / 0.983 / 0.998 / 0.999 / 0.999. Confirms the failure mode in dense categories. Avoid-list fix is now blocking, not nice-to-have, before launch.
-- **DEDUP_THRESHOLD restore** — currently 0.95 (smoke-only). Restore to **0.88** + redeploy `generateClassicTournamentContent`. **Highest priority — blocks production correctness** (Classic generator).
+- ✅ **Generator prompt dedup avoidance** — shipped 2026-06-02 via avoid-list limit 30 → 200. Geography pre-fix smoke (2026-06-01, revision 00008): aborted at index 3 with repeat-offender stems `YwdkC30UpWnuhqcdgiOP` (sim 1.000) and `zKc97TUpDrgPG0h51kyj` (sim 0.999), both confirmed outside the recent-30 window (ranks 60–61 of 66 geography pool). Post-fix smoke (2026-06-01, revision 00009-giy, limit 200): 20/20 `ready`, 0 dedup_hit, 317s. Spec authoritative in BRAINJAMIN.md § AI PIPELINE.
+- ✅ **DEDUP_THRESHOLD restore** — confirmed at **0.88** (no change needed). `generateClassicTournamentContent` redeployed successfully on 2026-05-18.
 - **`mcqShuffle` util doc sync** — BRAINJAMIN.md § CLOUD FUNCTIONS §
   Internal modules listesinde `mcqShuffle` zaten yer alıyor; commit
   `d4656ac` ile `functions/src/shared/mcqShuffle.ts` artık gerçekten
@@ -396,17 +397,16 @@ MODEL, § CLOUD FUNCTIONS.
 
 ### Sprint 5 — Profile + Ranking + Achievements + Settings
 
-- Profile tab (XP, level, streak, achievements grid)
-- Anonymous warning card on Profile tab (7-day dismissible,
-  `profileNudgeHiddenUntil` field; permanent users skip)
-- Leaderboard inline gate for anonymous users (full-screen empty state)
-- Username creation flow (3-20 char, charset rules, leading letter,
-  case-insensitive uniqueness, block list, 30-day cooldown, permanent
-  release on change, "Anonymous Player" fallback)
-- `validateUsername` CF (atomic transaction across 3 docs + cooldown +
-  block list)
-- Forced rename modal infrastructure (`forceRename: true` →
-  non-dismissible modal)
+- ✅ Profile tab XP / Level / Streak stat tiles (Firestore `users/{uid}`)
+- ✅ Anonymous warning card (`profileNudgeHiddenUntil`, 7-day snooze)
+- ✅ Leaderboard inline gate for anonymous users
+- ✅ Username creation flow (`UsernameCreationScreen`, route
+  `username-creation`)
+- ✅ `validateUsername` CF (atomic transaction, block list, cooldown,
+  `bad-words` package)
+- ✅ Forced rename modal (`forceRename: true` loop on Profile tab)
+- ✅ Username nudge card for permanent users without `displayName`
+- Profile tab achievements grid
 - Global + weekly leaderboards (`rebuildLeaderboards`,
   `resetWeeklyLeaderboard`)
 - 17 achievements + `checkAchievements` CF
